@@ -44,7 +44,7 @@ export const signOut = async () => {
 
 // User operations
 export const getUserProfile = async (userId: string) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('users')
     .select('*')
     .eq('id', userId)
@@ -79,7 +79,7 @@ export const updateUserProfile = async (userId: string, updates: Partial<{
   is_creator: boolean;
   stripe_account_id: string;
 }>) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('users')
     .update(updates)
     .eq('id', userId)
@@ -103,7 +103,7 @@ export const createPost = async (postData: {
   playback_url?: string;
   image_url?: string;
 }) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('posts')
     .insert(postData)
     .select()
@@ -125,7 +125,7 @@ export const getFeedPosts = async (userId?: string, limit = 20, offset = 0) => {
 };
 
 export const getUserPosts = async (userId: string, limit = 20, offset = 0) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('posts')
     .select(`
       *,
@@ -142,7 +142,7 @@ export const getUserPosts = async (userId: string, limit = 20, offset = 0) => {
 };
 
 export const getPost = async (postId: string) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('posts')
     .select(`
       *,
@@ -159,7 +159,7 @@ export const getPost = async (postId: string) => {
 
 // Like operations
 export const likePost = async (postId: string, userId: string) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('likes')
     .insert({ post_id: postId, user_id: userId })
     .select()
@@ -170,7 +170,7 @@ export const likePost = async (postId: string, userId: string) => {
 };
 
 export const unlikePost = async (postId: string, userId: string) => {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('likes')
     .delete()
     .eq('post_id', postId)
@@ -180,7 +180,7 @@ export const unlikePost = async (postId: string, userId: string) => {
 };
 
 export const isPostLiked = async (postId: string, userId: string) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('likes')
     .select('id')
     .eq('post_id', postId)
@@ -192,7 +192,7 @@ export const isPostLiked = async (postId: string, userId: string) => {
 
 // Follow operations
 export const followUser = async (followingId: string, followerId: string) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('follows')
     .insert({ following_id: followingId, follower_id: followerId })
     .select()
@@ -203,7 +203,7 @@ export const followUser = async (followingId: string, followerId: string) => {
 };
 
 export const unfollowUser = async (followingId: string, followerId: string) => {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('follows')
     .delete()
     .eq('following_id', followingId)
@@ -213,7 +213,7 @@ export const unfollowUser = async (followingId: string, followerId: string) => {
 };
 
 export const isFollowing = async (followingId: string, followerId: string) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('follows')
     .select('id')
     .eq('following_id', followingId)
@@ -233,7 +233,7 @@ export const createPayment = async (paymentData: {
   stripe_payment_intent_id: string;
   status?: 'pending' | 'completed' | 'failed';
 }) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('payments')
     .insert(paymentData)
     .select()
@@ -244,7 +244,7 @@ export const createPayment = async (paymentData: {
 };
 
 export const updatePaymentStatus = async (paymentIntentId: string, status: 'completed' | 'failed') => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('payments')
     .update({ status })
     .eq('stripe_payment_intent_id', paymentIntentId)
@@ -257,7 +257,7 @@ export const updatePaymentStatus = async (paymentIntentId: string, status: 'comp
 
 // Vault access operations
 export const grantVaultAccess = async (userId: string, postId: string, paymentId: string) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('vault_access')
     .insert({ user_id: userId, post_id: postId, payment_id: paymentId })
     .select()
@@ -283,7 +283,7 @@ export const createComment = async (commentData: {
   post_id: string;
   content: string;
 }) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('comments')
     .insert(commentData)
     .select(`
@@ -297,7 +297,7 @@ export const createComment = async (commentData: {
 };
 
 export const getPostComments = async (postId: string, limit = 50) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('comments')
     .select(`
       *,
@@ -313,7 +313,7 @@ export const getPostComments = async (postId: string, limit = 50) => {
 
 // Search operations
 export const searchUsers = async (query: string, limit = 10) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('users')
     .select('id, username, display_name, avatar_url, is_creator')
     .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
@@ -324,7 +324,7 @@ export const searchUsers = async (query: string, limit = 10) => {
 };
 
 export const searchPosts = async (query: string, limit = 20) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('posts')
     .select(`
       *,
