@@ -18,11 +18,11 @@ export interface Post {
   description: string;
   tags: string[];
   is_vault: boolean;
-  vault_price?: number; // in cents
+  vault_price?: number | null; // in cents
   media_type: 'image' | 'video';
-  mux_asset_id?: string;
-  playback_url?: string;
-  image_url?: string;
+  mux_asset_id?: string | null;
+  playback_url?: string | null;
+  image_url?: string | null;
   created_at: string;
   updated_at?: string;
   // Joined data
