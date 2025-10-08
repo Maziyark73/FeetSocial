@@ -1,8 +1,16 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import type { UploadFileResponse } from '@uploadthing/react';
 import { formatFileSize, isImageFile, isVideoFile } from '../utils/helpers';
 import { supabase } from '../lib/supabase';
+
+// Define UploadFileResponse type locally
+export interface UploadFileResponse {
+  url: string;
+  name: string;
+  size: number;
+  type: string;
+  key: string;
+}
 
 interface UploaderProps {
   onUploadComplete: (files: UploadFileResponse[]) => void;
