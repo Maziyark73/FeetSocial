@@ -61,7 +61,7 @@ export const createUserProfile = async (userData: {
   display_name: string;
   is_creator?: boolean;
 }) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('users')
     .insert(userData)
     .select()
