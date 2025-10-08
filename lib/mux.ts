@@ -114,12 +114,12 @@ export const processVideoUpload = async ({
     // Update post with Mux asset info
     const playbackUrl = await getPublicPlaybackUrl(asset.id);
     
-    const { data: updatedPost, error } = await supabaseAdmin
+    const { data: updatedPost, error } = await (supabaseAdmin as any)
       .from('posts')
       .update({
         mux_asset_id: asset.id,
         playback_url: playbackUrl,
-      } as any) // Type assertion to fix TypeScript issue
+      })
       .eq('id', postId)
       .select()
       .single();
@@ -171,11 +171,11 @@ export const handleMuxWebhook = async (body: any, signature: string) => {
 const handleAssetReady = async (assetData: any) => {
   try {
     // Update post status when video is ready
-    const { error } = await supabaseAdmin
+    const { error } = await (supabaseAdmin as any)
       .from('posts')
       .update({
         playback_url: await getPublicPlaybackUrl(assetData.id),
-      } as any) // Type assertion to fix TypeScript issue
+      })
       .eq('mux_asset_id', assetData.id);
 
     if (error) throw error;
