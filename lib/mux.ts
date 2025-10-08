@@ -12,7 +12,7 @@ export const createMuxAsset = async (fileUrl: string, metadata?: {
   description?: string;
 }) => {
   try {
-    const asset = await mux.video.assets.create({
+    const asset = await mux.Video.Assets.create({
       input: fileUrl,
       playback_policy: ['public'],
       mp4_support: 'standard',
@@ -30,7 +30,7 @@ export const createMuxAsset = async (fileUrl: string, metadata?: {
 // Get asset details
 export const getMuxAsset = async (assetId: string) => {
   try {
-    const asset = await mux.video.assets.retrieve(assetId);
+    const asset = await mux.Video.Assets.get(assetId);
     return asset;
   } catch (error) {
     console.error('Error retrieving Mux asset:', error);
@@ -41,7 +41,7 @@ export const getMuxAsset = async (assetId: string) => {
 // Delete a Mux asset
 export const deleteMuxAsset = async (assetId: string) => {
   try {
-    await mux.video.assets.del(assetId);
+    await mux.Video.Assets.del(assetId);
     return true;
   } catch (error) {
     console.error('Error deleting Mux asset:', error);
@@ -218,8 +218,8 @@ export const getAssetAnalytics = async (assetId: string, timeframe: string = '7d
 // Create thumbnail from video
 export const createThumbnail = async (assetId: string, time: number = 1) => {
   try {
-    const thumbnail = await mux.video.assets.createThumbnail(assetId, {
-      time: time,
+    const thumbnail = await mux.Video.Assets.createAssetPlaybackId(assetId, {
+      policy: 'public',
     });
 
     return thumbnail;
@@ -232,8 +232,8 @@ export const createThumbnail = async (assetId: string, time: number = 1) => {
 // Get asset thumbnails
 export const getAssetThumbnails = async (assetId: string) => {
   try {
-    const thumbnails = await mux.video.assets.listThumbnails(assetId);
-    return thumbnails;
+    const asset = await getMuxAsset(assetId);
+    return asset.playback_ids || [];
   } catch (error) {
     console.error('Error getting thumbnails:', error);
     throw error;
