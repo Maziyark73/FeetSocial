@@ -17,6 +17,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (action === 'create_account') {
       // Create new Stripe Connect account
+      if (!user.email) {
+        return res.status(400).json({ error: 'User email is required' });
+      }
       const account = await createStripeConnectAccount(user.id, user.email);
       return res.status(200).json({ 
         success: true, 
