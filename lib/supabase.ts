@@ -110,6 +110,7 @@ export const createPost = async (postData: {
     .single();
   
   if (error) throw error;
+  if (!data) throw new Error('Failed to create post - no data returned');
   return data;
 };
 
