@@ -19,7 +19,7 @@ export const createStripeConnectAccount = async (userId: string, email: string) 
     });
 
     // Update user with Stripe account ID
-    await supabaseAdmin
+    await (supabaseAdmin as any)
       .from('users')
       .update({ stripe_account_id: account.id })
       .eq('id', userId);
