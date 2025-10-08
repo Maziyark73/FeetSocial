@@ -260,19 +260,19 @@ BEGIN
     FROM posts p
     JOIN users u ON p.user_id = u.id
     LEFT JOIN (
-        SELECT post_id, COUNT(*) as count
-        FROM likes
-        GROUP BY post_id
+        SELECT l.post_id, COUNT(*) as count
+        FROM likes l
+        GROUP BY l.post_id
     ) likes_count ON p.id = likes_count.post_id
     LEFT JOIN (
-        SELECT post_id, COUNT(*) as count
-        FROM comments
-        GROUP BY post_id
+        SELECT c.post_id, COUNT(*) as count
+        FROM comments c
+        GROUP BY c.post_id
     ) comments_count ON p.id = comments_count.post_id
     LEFT JOIN (
-        SELECT post_id, user_id
-        FROM likes
-        WHERE user_id = user_uuid
+        SELECT l2.post_id, l2.user_id
+        FROM likes l2
+        WHERE l2.user_id = user_uuid
     ) user_likes ON p.id = user_likes.post_id
     ORDER BY p.created_at DESC
     LIMIT limit_count OFFSET offset_count;
