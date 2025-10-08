@@ -46,8 +46,8 @@ export default function Upload() {
     setError('');
   }, []);
 
-  const handleFileError = useCallback((error: string) => {
-    setError(error);
+  const handleFileError = useCallback((error: Error) => {
+    setError(error.message);
   }, []);
 
   const handleRemoveFile = useCallback((index: number) => {
