@@ -1,10 +1,10 @@
 import Mux from '@mux/mux-node';
 import { supabaseAdmin } from './supabase';
 
-const mux = new Mux({
-  tokenId: process.env.MUX_TOKEN!,
-  tokenSecret: process.env.MUX_SECRET!,
-});
+const mux = new Mux(
+  process.env.MUX_TOKEN_ID!,
+  process.env.MUX_TOKEN_SECRET!
+);
 
 // Create a Mux asset from a video file
 export const createMuxAsset = async (fileUrl: string, metadata?: {
