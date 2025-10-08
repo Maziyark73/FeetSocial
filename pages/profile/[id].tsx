@@ -107,7 +107,7 @@ export default function Profile() {
 
       // Check if current user has liked each post
       const postsWithLikes = await Promise.all(
-        (data || []).map(async (post) => {
+        (data || []).map(async (post: any) => {
           let isLiked = false;
           if (currentUser) {
             const { data: like } = await (supabase as any)
