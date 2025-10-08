@@ -200,7 +200,11 @@ export default function Home() {
       });
 
       // Redirect to Stripe checkout
-      window.location.href = session.url;
+      if (session.url) {
+        window.location.href = session.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
     } catch (error) {
       console.error('Error creating unlock session:', error);
       setError('Failed to unlock content. Please try again.');
@@ -227,7 +231,11 @@ export default function Home() {
       });
 
       // Redirect to Stripe checkout
-      window.location.href = session.url;
+      if (session.url) {
+        window.location.href = session.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
     } catch (error) {
       console.error('Error creating tip session:', error);
       setError('Failed to send tip. Please try again.');

@@ -207,7 +207,11 @@ export default function Profile() {
         amount: amount,
       });
 
-      window.location.href = session.url;
+      if (session.url) {
+        window.location.href = session.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
     } catch (error) {
       console.error('Error creating tip session:', error);
       setError('Failed to send tip. Please try again.');
@@ -230,7 +234,11 @@ export default function Profile() {
         postPrice: post.vault_price,
       });
 
-      window.location.href = session.url;
+      if (session.url) {
+        window.location.href = session.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
     } catch (error) {
       console.error('Error creating unlock session:', error);
       setError('Failed to unlock content. Please try again.');
