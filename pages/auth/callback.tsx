@@ -21,7 +21,7 @@ export default function AuthCallback() {
 
         if (data.session?.user) {
           // Check if user profile exists
-          const { data: profile } = await supabase
+          const { data: profile } = await (supabase as any)
             .from('users')
             .select('*')
             .eq('id', data.session.user.id)

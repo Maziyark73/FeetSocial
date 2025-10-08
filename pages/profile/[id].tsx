@@ -36,7 +36,7 @@ export default function Profile() {
     try {
       const authUser = await getCurrentUser();
       if (authUser) {
-        const { data: profile } = await supabase
+        const { data: profile } = await (supabase as any)
           .from('users')
           .select('*')
           .eq('id', authUser.id)
@@ -67,7 +67,7 @@ export default function Profile() {
         
         // Check if current user is following this user
         if (currentUser && currentUser.id !== id) {
-          const { data: follow } = await supabase
+          const { data: follow } = await (supabase as any)
             .from('follows')
             .select('id')
             .eq('follower_id', currentUser.id)
@@ -91,7 +91,7 @@ export default function Profile() {
     if (!id) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('posts')
         .select(`
           *,
@@ -110,7 +110,7 @@ export default function Profile() {
         (data || []).map(async (post) => {
           let isLiked = false;
           if (currentUser) {
-            const { data: like } = await supabase
+            const { data: like } = await (supabase as any)
               .from('likes')
               .select('id')
               .eq('post_id', post.id)
@@ -122,7 +122,7 @@ export default function Profile() {
           // Check vault access
           let hasAccess = !post.is_vault;
           if (post.is_vault && currentUser && currentUser.id !== id) {
-            const { data: access } = await supabase
+            const { data: access } = await (supabase as any)
               .from('vault_access')
               .select('id')
               .eq('post_id', post.id)
@@ -244,7 +244,7 @@ export default function Profile() {
     }
 
     try {
-      const { data: existingLike } = await supabase
+      const { data: existingLike } = await (supabase as any)
         .from('likes')
         .select('id')
         .eq('post_id', postId)
@@ -252,7 +252,7 @@ export default function Profile() {
         .single();
 
       if (existingLike) {
-        await supabase
+        await (supabase as any)
           .from('likes')
           .delete()
           .eq('post_id', postId)
@@ -268,7 +268,7 @@ export default function Profile() {
             : post
         ));
       } else {
-        await supabase
+        await (supabase as any)
           .from('likes')
           .insert({ post_id: postId, user_id: currentUser.id });
 

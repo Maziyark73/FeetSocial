@@ -41,7 +41,7 @@ export default function Login() {
 
       if (data.user) {
         // Check if user profile exists
-        const { data: profile } = await supabase
+        const { data: profile } = await (supabase as any)
           .from('users')
           .select('*')
           .eq('id', data.user.id)

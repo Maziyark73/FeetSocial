@@ -19,7 +19,7 @@ export default function CompleteProfile() {
         }
 
         // Check if profile already exists
-        const { data: existingProfile } = await supabase
+        const { data: existingProfile } = await (supabase as any)
           .from('users')
           .select('*')
           .eq('id', user.id)

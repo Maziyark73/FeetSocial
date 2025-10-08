@@ -33,7 +33,7 @@ export default function Home() {
 
       const currentUser = await getCurrentUser();
       if (currentUser) {
-        const { data: profile } = await supabase
+        const { data: profile } = await (supabase as any)
           .from('users')
           .select('*')
           .eq('id', currentUser.id)
@@ -131,7 +131,7 @@ export default function Home() {
       }
 
       // Check if already liked
-      const { data: existingLike } = await supabase
+      const { data: existingLike } = await (supabase as any)
         .from('likes')
         .select('id')
         .eq('post_id', postId)
@@ -140,7 +140,7 @@ export default function Home() {
 
       if (existingLike) {
         // Unlike
-        await supabase
+        await (supabase as any)
           .from('likes')
           .delete()
           .eq('post_id', postId)
@@ -157,7 +157,7 @@ export default function Home() {
         ));
       } else {
         // Like
-        await supabase
+        await (supabase as any)
           .from('likes')
           .insert({ post_id: postId, user_id: user.id });
 
@@ -241,7 +241,7 @@ export default function Home() {
     }
 
     try {
-      await supabase
+      await (supabase as any)
         .from('follows')
         .insert({ follower_id: user.id, following_id: userId });
     } catch (error) {
@@ -253,7 +253,7 @@ export default function Home() {
     if (!user) return;
 
     try {
-      await supabase
+      await (supabase as any)
         .from('follows')
         .delete()
         .eq('follower_id', user.id)
