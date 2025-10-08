@@ -114,7 +114,7 @@ export const createPost = async (postData: {
 };
 
 export const getFeedPosts = async (userId?: string, limit = 20, offset = 0) => {
-  const { data, error } = await supabase.rpc('get_feed_posts', {
+  const { data, error } = await (supabase as any).rpc('get_feed_posts', {
     user_uuid: userId || null,
     limit_count: limit,
     offset_count: offset
@@ -268,7 +268,7 @@ export const grantVaultAccess = async (userId: string, postId: string, paymentId
 };
 
 export const hasVaultAccess = async (userId: string, postId: string) => {
-  const { data, error } = await supabase.rpc('has_vault_access', {
+  const { data, error } = await (supabase as any).rpc('has_vault_access', {
     user_uuid: userId,
     post_uuid: postId
   });
