@@ -103,9 +103,9 @@ export default function FeedItem({
             <video
               controls
               className="w-full h-full object-cover"
-              poster={post.image_url}
+              poster={post.image_url || undefined}
             >
-              <source src={post.playback_url} type="application/x-mpegURL" />
+              <source src={post.playback_url || undefined} type="application/x-mpegURL" />
               Your browser does not support the video tag.
             </video>
           )}
