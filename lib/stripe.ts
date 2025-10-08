@@ -71,7 +71,7 @@ export const createTipCheckoutSession = async ({
 }) => {
   try {
     // Get creator's Stripe account
-    const { data: creator, error: creatorError } = await supabaseAdmin
+    const { data: creator, error: creatorError } = await (supabaseAdmin as any)
       .from('users')
       .select('stripe_account_id, display_name')
       .eq('id', toUserId)
@@ -114,7 +114,7 @@ export const createTipCheckoutSession = async ({
     });
 
     // Create payment record
-    await supabaseAdmin.from('payments').insert({
+    await (supabaseAdmin as any).from('payments').insert({
       from_user_id: fromUserId,
       to_user_id: toUserId,
       amount,
@@ -141,7 +141,7 @@ export const createVaultUnlockSession = async ({
 }) => {
   try {
     // Get post and creator info
-    const { data: post, error: postError } = await supabaseAdmin
+    const { data: post, error: postError } = await (supabaseAdmin as any)
       .from('posts')
       .select(`
         *,
@@ -187,7 +187,7 @@ export const createVaultUnlockSession = async ({
     });
 
     // Create payment record
-    await supabaseAdmin.from('payments').insert({
+    await (supabaseAdmin as any).from('payments').insert({
       from_user_id: fromUserId,
       to_user_id: post.user_id,
       post_id: postId,
@@ -239,13 +239,13 @@ const handleCheckoutSessionCompleted = async (session: Stripe.Checkout.Session) 
   
   if (metadata?.type === 'tip') {
     // Update payment status
-    await supabaseAdmin
+    await (supabaseAdmin as any)
       .from('payments')
       .update({ status: 'completed' })
       .eq('stripe_payment_intent_id', session.payment_intent);
   } else if (metadata?.type === 'vault_unlock') {
     // Update payment status and grant vault access
-    const { data: payment } = await supabaseAdmin
+    const { data: payment } = await (supabaseAdmin as any)
       .from('payments')
       .update({ status: 'completed' })
       .eq('stripe_payment_intent_id', session.payment_intent)
@@ -253,7 +253,7 @@ const handleCheckoutSessionCompleted = async (session: Stripe.Checkout.Session) 
       .single();
 
     if (payment && metadata.post_id) {
-      await supabaseAdmin.from('vault_access').insert({
+      await (supabaseAdmin as any).from('vault_access').insert({
         user_id: metadata.from_user_id,
         post_id: metadata.post_id,
         payment_id: payment.id,
@@ -264,7 +264,7 @@ const handleCheckoutSessionCompleted = async (session: Stripe.Checkout.Session) 
 
 const handlePaymentIntentSucceeded = async (paymentIntent: Stripe.PaymentIntent) => {
   // Update payment status
-  await supabaseAdmin
+  await (supabaseAdmin as any)
     .from('payments')
     .update({ status: 'completed' })
     .eq('stripe_payment_intent_id', paymentIntent.id);
@@ -272,7 +272,7 @@ const handlePaymentIntentSucceeded = async (paymentIntent: Stripe.PaymentIntent)
 
 const handlePaymentIntentFailed = async (paymentIntent: Stripe.PaymentIntent) => {
   // Update payment status
-  await supabaseAdmin
+  await (supabaseAdmin as any)
     .from('payments')
     .update({ status: 'failed' })
     .eq('stripe_payment_intent_id', paymentIntent.id);
@@ -292,7 +292,7 @@ export const parseAmount = (amount: string) => {
 
 // Get user's payment history
 export const getUserPayments = async (userId: string, limit = 20) => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await (supabaseAdmin as any)
     .from('payments')
     .select(`
       *,
@@ -310,7 +310,7 @@ export const getUserPayments = async (userId: string, limit = 20) => {
 
 // Get user's earnings
 export const getUserEarnings = async (userId: string) => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await (supabaseAdmin as any)
     .from('payments')
     .select('amount, status')
     .eq('to_user_id', userId)
@@ -318,7 +318,7 @@ export const getUserEarnings = async (userId: string) => {
 
   if (error) throw error;
 
-  const totalEarnings = data.reduce((sum, payment) => sum + payment.amount, 0);
+  const totalEarnings = data.reduce((sum: number, payment: any) => sum + payment.amount, 0);
   return {
     totalEarnings,
     payments: data,
