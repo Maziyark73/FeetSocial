@@ -7,13 +7,13 @@ import { supabase, getCurrentUser, getUserProfile, getUserPosts, followUser, unf
 import { createTipCheckoutSession, createVaultUnlockSession } from '../../lib/stripe';
 import ProfileCard from '../../components/ProfileCard';
 import FeedItem from '../../components/FeedItem';
-import type { User, Post, FeedItem as FeedItemType } from '../../types';
+import type { User, Post, FeedItem as FeedItemType, ProfileData } from '../../types';
 import { formatDate, generateAvatarPlaceholder } from '../../utils/helpers';
 
 export default function Profile() {
   const router = useRouter();
   const { id } = router.query;
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ProfileData | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<FeedItemType[]>([]);
   const [loading, setLoading] = useState(true);
