@@ -223,7 +223,7 @@ export const getAssetAnalytics = async (assetId: string, timeframe: string = '7d
 // Create thumbnail from video
 export const createThumbnail = async (assetId: string, time: number = 1) => {
   try {
-    const thumbnail = await mux.Video.Assets.createAssetPlaybackId(assetId, {
+    const thumbnail = await mux.Video.Assets.createPlaybackId(assetId, {
       policy: 'public',
     });
 
