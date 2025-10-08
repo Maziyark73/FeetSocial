@@ -17,7 +17,7 @@ export default async function handler(
     }
 
     // Use admin client to bypass RLS
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await (supabaseAdmin as any)
       .from('users')
       .insert({
         id: userId,
