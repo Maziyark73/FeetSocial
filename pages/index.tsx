@@ -63,7 +63,7 @@ export default function Home() {
         return;
       }
 
-      const { data, error } = await supabase.rpc('get_feed_posts', {
+      const { data, error } = await (supabase as any).rpc('get_feed_posts', {
         user_uuid: user?.id || null,
         limit_count: 20,
         offset_count: offset,

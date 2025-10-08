@@ -57,7 +57,7 @@ export default function Profile() {
     setLoading(true);
     try {
       // Load user profile with stats
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile, error: profileError } = await (supabase as any)
         .rpc('get_user_profile', { user_uuid: id as string });
       
       if (profileError) throw profileError;
