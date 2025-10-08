@@ -119,7 +119,7 @@ export const processVideoUpload = async ({
       .update({
         mux_asset_id: asset.id,
         playback_url: playbackUrl,
-      })
+      } as any) // Type assertion to fix TypeScript issue
       .eq('id', postId)
       .select()
       .single();
@@ -175,7 +175,7 @@ const handleAssetReady = async (assetData: any) => {
       .from('posts')
       .update({
         playback_url: await getPublicPlaybackUrl(assetData.id),
-      })
+      } as any) // Type assertion to fix TypeScript issue
       .eq('mux_asset_id', assetData.id);
 
     if (error) throw error;
