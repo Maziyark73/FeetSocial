@@ -36,6 +36,17 @@ export default function Uploader({
     async (acceptedFiles: File[]) => {
       if (disabled || uploading) return;
 
+      // Warn if dragged file appears to be converted
+      acceptedFiles.forEach(file => {
+        const hasImageExt = /\.(jpe?g|png|gif)$/i.test(file.name);
+        const hasImageType = file.type.startsWith('image/');
+        const isLikelyConverted = hasImageExt && file.name.includes('_1_102_o');
+        
+        if (isLikelyConverted) {
+          console.warn('⚠️ File appears to be auto-converted by macOS. For videos, please use "Click to upload" instead of drag-and-drop.');
+        }
+      });
+
       setUploading(true);
       setUploadProgress(0);
 
@@ -208,6 +219,9 @@ export default function Uploader({
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 PNG, JPG, GIF, MP4, MOV, AVI, MKV, WEBM
+              </p>
+              <p className="text-xs text-yellow-500 mt-2">
+                💡 For videos: Click to browse (drag-and-drop may convert files)
               </p>
             </div>
           </div>
