@@ -272,3 +272,79 @@ export const getVideoAspectRatio = async (assetId: string) => {
   }
 };
 
+// ============================================
+// LIVE STREAMING FUNCTIONS
+// ============================================
+
+// Create a new live stream
+export const createLiveStream = async (metadata?: {
+  title?: string;
+  description?: string;
+}) => {
+  try {
+    const liveStream = await mux.Video.LiveStreams.create({
+      playback_policy: ['public'],
+      new_asset_settings: {
+        playback_policy: ['public'],
+      },
+      reconnect_window: 60, // Allow reconnection within 60 seconds
+      ...metadata,
+    });
+
+    return {
+      id: liveStream.id,
+      streamKey: liveStream.stream_key,
+      playbackIds: liveStream.playback_ids,
+      status: liveStream.status,
+    };
+  } catch (error) {
+    console.error('Error creating live stream:', error);
+    throw error;
+  }
+};
+
+// Get live stream details
+export const getLiveStream = async (streamId: string) => {
+  try {
+    const liveStream = await mux.Video.LiveStreams.retrieve(streamId);
+    return liveStream;
+  } catch (error) {
+    console.error('Error getting live stream:', error);
+    throw error;
+  }
+};
+
+// Delete/end a live stream
+export const deleteLiveStream = async (streamId: string) => {
+  try {
+    await mux.Video.LiveStreams.del(streamId);
+    return true;
+  } catch (error) {
+    console.error('Error deleting live stream:', error);
+    throw error;
+  }
+};
+
+// Create a simulcast target (for multi-platform streaming)
+export const createSimulcastTarget = async (
+  streamId: string,
+  url: string,
+  streamKey: string
+) => {
+  try {
+    const target = await mux.Video.LiveStreams.createSimulcastTarget(streamId, {
+      url,
+      stream_key: streamKey,
+    });
+    return target;
+  } catch (error) {
+    console.error('Error creating simulcast target:', error);
+    throw error;
+  }
+};
+
+// Get live stream playback URL
+export const getLiveStreamPlaybackUrl = (playbackId: string) => {
+  return `https://stream.mux.com/${playbackId}.m3u8`;
+};
+

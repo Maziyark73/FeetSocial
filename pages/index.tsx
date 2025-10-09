@@ -12,6 +12,7 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<FeedItemType[]>([]);
   const [allPosts, setAllPosts] = useState<FeedItemType[]>([]); // Store all posts for filtering
+  const [liveStreams, setLiveStreams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -23,6 +24,13 @@ export default function Home() {
   useEffect(() => {
     loadUser();
     loadPosts();
+    loadLiveStreams();
+  }, []);
+
+  // Poll for live stream updates
+  useEffect(() => {
+    const interval = setInterval(loadLiveStreams, 15000); // Refresh every 15 seconds
+    return () => clearInterval(interval);
   }, []);
 
   // Filter posts by tag
@@ -56,6 +64,16 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error loading user:', error);
+    }
+  };
+
+  const loadLiveStreams = async () => {
+    try {
+      const { data, error } = await (supabase as any).rpc('get_active_live_streams');
+      if (error) throw error;
+      setLiveStreams(data || []);
+    } catch (error) {
+      console.error('Error loading live streams:', error);
     }
   };
 
@@ -418,6 +436,13 @@ export default function Home() {
                 {user ? (
                   <>
                     <Link
+                      href="/go-live"
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                    >
+                      <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                      Go Live
+                    </Link>
+                    <Link
                       href="/upload"
                       className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     >
@@ -502,6 +527,77 @@ export default function Home() {
             <div className="text-sm text-gray-400 space-y-1">
               <p>✅ Try liking posts, tipping creators, and unlocking vault content</p>
               <p>📝 See test-env-setup.md to configure real services</p>
+            </div>
+          </div>
+        )}
+
+        {/* Live Streams Section */}
+        {liveStreams.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></span>
+              Live Now
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {liveStreams.map((stream: any) => (
+                <Link
+                  key={stream.stream_id}
+                  href={`/live/${stream.stream_id}`}
+                  className="relative bg-gray-800 rounded-lg overflow-hidden hover:ring-2 hover:ring-purple-500 transition-all group"
+                >
+                  {/* Thumbnail */}
+                  <div className="relative aspect-video bg-gray-900">
+                    {stream.playback_url ? (
+                      <video
+                        src={stream.playback_url}
+                        className="w-full h-full object-cover"
+                        muted
+                        playsInline
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <svg className="w-12 h-12 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    )}
+                    
+                    {/* Live Badge */}
+                    <div className="absolute top-2 left-2 bg-red-600 px-2 py-1 rounded flex items-center gap-1">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      <span className="text-white font-bold text-xs">LIVE</span>
+                    </div>
+
+                    {/* Viewer Count */}
+                    <div className="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded">
+                      <span className="text-white text-xs">👁️ {stream.viewer_count || 0}</span>
+                    </div>
+                  </div>
+
+                  {/* Stream Info */}
+                  <div className="p-3">
+                    <h3 className="text-white font-medium line-clamp-2 group-hover:text-purple-300 transition-colors">
+                      {stream.title}
+                    </h3>
+                    <div className="flex items-center space-x-2 mt-2">
+                      <div className="relative w-6 h-6 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                        {stream.avatar_url ? (
+                          <img
+                            src={stream.avatar_url}
+                            alt={stream.display_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white text-xs">
+                            {stream.display_name?.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-gray-400 text-sm">{stream.display_name}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         )}
