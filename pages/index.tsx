@@ -11,10 +11,12 @@ import type { FeedItem as FeedItemType, User } from '../types';
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<FeedItemType[]>([]);
+  const [allPosts, setAllPosts] = useState<FeedItemType[]>([]); // Store all posts for filtering
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const router = useRouter();
 
   // Load initial data
@@ -22,6 +24,15 @@ export default function Home() {
     loadUser();
     loadPosts();
   }, []);
+
+  // Filter posts by tag
+  useEffect(() => {
+    if (selectedTag) {
+      setPosts(allPosts.filter(post => post.tags && post.tags.includes(selectedTag)));
+    } else {
+      setPosts(allPosts);
+    }
+  }, [selectedTag, allPosts]);
 
   const loadUser = async () => {
     try {
@@ -97,8 +108,10 @@ export default function Home() {
 
       if (offset === 0) {
         setPosts(transformedPosts);
+        setAllPosts(transformedPosts);
       } else {
         setPosts(prev => [...prev, ...transformedPosts]);
+        setAllPosts(prev => [...prev, ...transformedPosts]);
       }
 
       setHasMore(transformedPosts.length === 20);
@@ -402,6 +415,16 @@ export default function Home() {
                     >
                       Create Post
                     </Link>
+                    <Link
+                      href="/settings"
+                      className="text-gray-400 hover:text-white transition-colors"
+                      title="Settings"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </Link>
                     <Link href={`/profile/${user.id}`}>
                       <div className="w-8 h-8 bg-gray-700 rounded-full overflow-hidden">
                         {user.avatar_url ? (
@@ -474,6 +497,42 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {/* Tag Filter */}
+        {allPosts.length > 0 && (() => {
+          const allTags = Array.from(new Set(allPosts.flatMap(post => post.tags || [])));
+          if (allTags.length > 0) {
+            return (
+              <div className="mb-6 flex items-center space-x-2 overflow-x-auto pb-2">
+                <span className="text-gray-400 text-sm whitespace-nowrap">Filter:</span>
+                <button
+                  onClick={() => setSelectedTag(null)}
+                  className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition-colors ${
+                    !selectedTag 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  All
+                </button>
+                {allTags.map(tag => (
+                  <button
+                    key={tag}
+                    onClick={() => setSelectedTag(tag)}
+                    className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition-colors ${
+                      selectedTag === tag 
+                        ? 'bg-purple-600 text-white' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+            );
+          }
+          return null;
+        })()}
 
         {/* Welcome Message */}
         {!user && !DEMO_MODE && (

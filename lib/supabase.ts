@@ -90,6 +90,29 @@ export const updateUserProfile = async (userId: string, updates: Partial<{
   return data;
 };
 
+export const uploadAvatar = async (userId: string, file: File): Promise<string> => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${userId}-${Date.now()}.${fileExt}`;
+  const filePath = `avatars/${fileName}`;
+
+  // Upload to Supabase Storage
+  const { data, error: uploadError } = await (supabase as any).storage
+    .from('media')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false,
+    });
+
+  if (uploadError) throw uploadError;
+
+  // Get public URL
+  const { data: { publicUrl } } = (supabase as any).storage
+    .from('media')
+    .getPublicUrl(filePath);
+
+  return publicUrl;
+};
+
 // Post operations
 export const createPost = async (postData: {
   user_id: string;
