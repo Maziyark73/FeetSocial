@@ -115,7 +115,7 @@ export default function Profile() {
               .select('id')
               .eq('post_id', post.id)
               .eq('user_id', currentUser.id)
-              .single();
+              .maybeSingle();
             isLiked = !!like;
           }
 
@@ -127,7 +127,7 @@ export default function Profile() {
               .select('id')
               .eq('post_id', post.id)
               .eq('user_id', currentUser.id)
-              .single();
+              .maybeSingle();
             hasAccess = !!access;
           }
 
@@ -314,7 +314,7 @@ export default function Profile() {
         .select('id')
         .eq('post_id', postId)
         .eq('user_id', currentUser.id)
-        .single();
+        .maybeSingle();
 
       if (existingLike) {
         await (supabase as any)
