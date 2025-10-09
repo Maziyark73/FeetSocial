@@ -145,9 +145,9 @@ export default function FeedItem({
       const isMuxVideo = post.playback_url && post.playback_url.includes('mux.com');
       
       return (
-        <div className="relative aspect-video w-full bg-gray-900 rounded-lg overflow-hidden">
+        <div className="relative w-full bg-gray-900 rounded-lg overflow-hidden">
           {post.is_vault && !(post as any).has_access ? (
-            <div className="w-full h-full bg-black flex items-center justify-center">
+            <div className="aspect-video w-full bg-black flex items-center justify-center">
               <div className="text-center">
                 <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -163,9 +163,10 @@ export default function FeedItem({
           ) : videoUrl ? (
             <video
               controls
-              className="w-full h-full object-cover"
-              poster={post.image_url || undefined}
+              controlsList="nodownload"
+              className="w-full max-h-[600px] bg-black"
               preload="metadata"
+              style={{ display: 'block' }}
             >
               {isMuxVideo ? (
                 <source src={videoUrl} type="application/x-mpegURL" />
@@ -175,7 +176,7 @@ export default function FeedItem({
               Your browser does not support the video tag.
             </video>
           ) : (
-            <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+            <div className="aspect-video w-full bg-gray-800 flex items-center justify-center">
               <div className="text-center text-gray-400">
                 <svg className="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z"/>
