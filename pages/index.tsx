@@ -267,15 +267,22 @@ export default function Home() {
       }
 
       // Create comment
-      const { error } = await (supabase as any)
+      const { data, error } = await (supabase as any)
         .from('comments')
         .insert({
           post_id: postId,
           user_id: user.id,
           content: text,
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Comment insert error:', error);
+        throw error;
+      }
+
+      console.log('Comment created successfully:', data);
 
       // Update local state
       setPosts(prev => prev.map(post => 

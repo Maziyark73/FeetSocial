@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatDate, formatCurrency, generateAvatarPlaceholder } from '../utils/helpers';
@@ -28,6 +28,15 @@ export default function FeedItem({
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [isLiking, setIsLiking] = useState(false);
+  const [comments, setComments] = useState<any[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+
+  // Load comments when expanded
+  useEffect(() => {
+    if (showComments && comments.length === 0) {
+      loadComments();
+    }
+  }, [showComments]);
 
   const handleLike = async () => {
     if (isLiking) return;
@@ -47,6 +56,34 @@ export default function FeedItem({
     await onTip(post.user.id, amount);
   };
 
+  const loadComments = async () => {
+    setLoadingComments(true);
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+
+      const { data, error } = await (supabase as any)
+        .from('comments')
+        .select(`
+          *,
+          user:users(id, username, display_name, avatar_url)
+        `)
+        .eq('post_id', post.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setComments(data || []);
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
   const handleComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim() || !currentUserId) return;
@@ -54,6 +91,8 @@ export default function FeedItem({
     try {
       await onComment(post.id, commentText.trim());
       setCommentText('');
+      // Reload comments to show the new one
+      await loadComments();
     } catch (error) {
       console.error('Error posting comment:', error);
     }
@@ -295,10 +334,47 @@ export default function FeedItem({
 
           {/* Comments List */}
           <div className="space-y-3">
-            {/* TODO: Implement comments list */}
-            <p className="text-gray-500 text-sm text-center py-4">
-              Comments feature coming soon
-            </p>
+            {loadingComments ? (
+              <p className="text-gray-500 text-sm text-center py-4">Loading comments...</p>
+            ) : comments.length > 0 ? (
+              comments.map((comment: any) => (
+                <div key={comment.id} className="flex space-x-3">
+                  <Link href={`/profile/${comment.user?.id}`}>
+                    <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                      {comment.user?.avatar_url ? (
+                        <Image
+                          src={comment.user.avatar_url}
+                          alt={comment.user.display_name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white text-xs">
+                          {comment.user?.display_name?.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                  <div className="flex-1 min-w-0">
+                    <div className="bg-gray-700 rounded-lg px-3 py-2">
+                      <Link href={`/profile/${comment.user?.id}`}>
+                        <p className="text-sm font-medium text-white hover:text-purple-300 transition-colors">
+                          {comment.user?.display_name}
+                        </p>
+                      </Link>
+                      <p className="text-sm text-gray-300 mt-1">{comment.content}</p>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1 ml-3">
+                      {formatDate(comment.created_at)}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm text-center py-4">
+                No comments yet. Be the first to comment!
+              </p>
+            )}
           </div>
         </div>
       )}
