@@ -94,19 +94,28 @@ export default function Upload() {
 
       const post = await createPost(postData);
 
-      // If video, process with Mux
+      if (!post || !post.id) {
+        throw new Error('Failed to create post - no post ID returned');
+      }
+
+      // If video, process with Mux (optional - will fail gracefully if Mux not configured)
       if (isVideo) {
-        await fetch('/api/mux/process-video', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fileUrl: file.url,
-            userId: user.id,
-            postId: post.id,
-            title: formData.title,
-            description: formData.description,
-          }),
-        });
+        try {
+          await fetch('/api/mux/process-video', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileUrl: file.url,
+              userId: user.id,
+              postId: post.id,
+              title: formData.title,
+              description: formData.description,
+            }),
+          });
+        } catch (muxError) {
+          console.warn('Mux processing failed (optional):', muxError);
+          // Continue anyway - video will be available but not processed
+        }
       }
 
       // Redirect to home feed
