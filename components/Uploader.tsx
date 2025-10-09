@@ -53,15 +53,24 @@ export default function Uploader({
 
         // Use Supabase Storage for file upload
         const uploadPromises = acceptedFiles.map(async (file) => {
-          const fileExt = file.name.split('.').pop();
+          const fileExt = file.name.split('.').pop()?.toLowerCase() || 'bin';
           const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
           const filePath = `uploads/${fileName}`;
+
+          console.log('🔍 UPLOADER - File details:', {
+            originalName: file.name,
+            extractedExt: fileExt,
+            generatedFileName: fileName,
+            fileType: file.type,
+            fileSize: file.size
+          });
 
           const { data, error } = await supabase.storage
             .from('media')
             .upload(filePath, file, {
               cacheControl: '3600',
               upsert: false,
+              contentType: file.type, // Explicitly set content type
             });
 
           if (error) {
@@ -72,6 +81,12 @@ export default function Uploader({
           const { data: { publicUrl } } = supabase.storage
             .from('media')
             .getPublicUrl(filePath);
+
+          console.log('File uploaded:', {
+            publicUrl,
+            filePath,
+            originalType: file.type
+          });
 
           return {
             url: publicUrl,
@@ -106,11 +121,14 @@ export default function Uploader({
     onDrop,
     maxFiles,
     maxSize,
-    accept: acceptedFileTypes.reduce((acc, type) => {
-      acc[type] = [];
-      return acc;
-    }, {} as Record<string, string[]>),
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
+      'video/*': ['.mp4', '.mov', '.avi', '.mkv', '.webm'],
+    },
     disabled: disabled || uploading,
+    noClick: false,
+    noKeyboard: false,
+    preventDropOnDocument: true,
   });
 
   const fileRejectionErrors = fileRejections.map(({ file, errors }) => ({

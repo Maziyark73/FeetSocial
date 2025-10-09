@@ -144,6 +144,14 @@ export default function FeedItem({
       const videoUrl = post.playback_url || (post as any).video_url || post.image_url;
       const isMuxVideo = post.playback_url && post.playback_url.includes('mux.com');
       
+      console.log('Video post:', {
+        media_type: post.media_type,
+        videoUrl,
+        playback_url: post.playback_url,
+        image_url: post.image_url,
+        isMuxVideo
+      });
+      
       return (
         <div className="relative w-full bg-gray-900 rounded-lg overflow-hidden">
           {post.is_vault && !(post as any).has_access ? (

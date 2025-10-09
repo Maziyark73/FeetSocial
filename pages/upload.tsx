@@ -77,8 +77,15 @@ export default function Upload() {
 
     try {
       const file = uploadedFiles[0];
-      const isVideo = file.type.startsWith('video/');
+      const isVideo = file.type.startsWith('video/') || file.name.match(/\.(mp4|mov|avi|mkv|webm)$/i);
       const tags = formData.tags.split(',').map(tag => tag.trim()).filter(Boolean);
+
+      console.log('Upload file info:', {
+        name: file.name,
+        type: file.type,
+        isVideo,
+        url: file.url
+      });
 
       // Create post
       const postData: any = {
@@ -91,6 +98,8 @@ export default function Upload() {
         media_type: isVideo ? 'video' : 'image',
         image_url: isVideo ? file.url : file.url, // For videos, store URL temporarily until Mux processes
       };
+
+      console.log('Creating post with data:', postData);
 
       const post = await createPost(postData);
 
