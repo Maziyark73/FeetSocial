@@ -4,11 +4,23 @@ const nextConfig = {
     appDir: false, // Using pages directory
   },
   images: {
-    domains: [
-      'localhost',
-      'utfs.io', // UploadThing domain
-      'image.mux.com', // Mux thumbnails
-      'stream.mux.com', // Mux video streams
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'utfs.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'image.mux.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'stream.mux.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'yzeyqbyhfcfxrzkgvkmj.supabase.co',
+      },
     ],
   },
   env: {

@@ -71,13 +71,37 @@ export default function Home() {
 
       if (error) throw error;
 
+      // Transform flat SQL result into nested structure
+      const transformedPosts = (data || []).map((row: any) => ({
+        id: row.post_id,
+        user_id: row.user_id,
+        title: row.title,
+        description: row.description,
+        tags: row.tags,
+        is_vault: row.is_vault,
+        vault_price: row.vault_price,
+        media_type: row.media_type,
+        playback_url: row.playback_url,
+        image_url: row.image_url,
+        created_at: row.created_at,
+        likes_count: row.likes_count,
+        comments_count: row.comments_count,
+        is_liked: row.is_liked,
+        user: {
+          id: row.user_id,
+          username: row.username,
+          display_name: row.display_name,
+          avatar_url: row.avatar_url,
+        }
+      }));
+
       if (offset === 0) {
-        setPosts(data || []);
+        setPosts(transformedPosts);
       } else {
-        setPosts(prev => [...prev, ...(data || [])]);
+        setPosts(prev => [...prev, ...transformedPosts]);
       }
 
-      setHasMore((data || []).length === 20);
+      setHasMore(transformedPosts.length === 20);
     } catch (error) {
       console.error('Error loading posts:', error);
       setError('Failed to load posts');

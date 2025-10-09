@@ -120,6 +120,12 @@ export default function FeedItem({
     );
   };
 
+  // Safety check - if post data is malformed, don't render
+  if (!post || !post.user || !post.user.id) {
+    console.error('Malformed post data:', post);
+    return null;
+  }
+
   return (
     <article className="bg-gray-800 rounded-lg p-6 space-y-4">
       {/* Header */}
