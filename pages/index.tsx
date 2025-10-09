@@ -248,7 +248,7 @@ export default function Home() {
     }
   };
 
-  const handleComment = async (postId: string, text: string) => {
+  const handleComment = async (postId: string, text: string, parentId?: string | null) => {
     if (!user) {
       router.push('/login');
       return;
@@ -273,6 +273,7 @@ export default function Home() {
           post_id: postId,
           user_id: user.id,
           content: text,
+          parent_id: parentId || null,
         })
         .select()
         .single();

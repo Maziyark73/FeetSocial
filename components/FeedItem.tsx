@@ -10,7 +10,7 @@ interface FeedItemProps {
   post: FeedItemType;
   currentUserId?: string;
   onLike: (postId: string) => void;
-  onComment: (postId: string, text: string) => void;
+  onComment: (postId: string, text: string, parentId?: string | null) => void;
   onUnlock: (postId: string) => void;
   onTip: (userId: string, amount: number) => void;
   onDelete?: (postId: string) => void;
@@ -30,6 +30,8 @@ export default function FeedItem({
   const [isLiking, setIsLiking] = useState(false);
   const [comments, setComments] = useState<any[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
 
   // Load comments when expanded
   useEffect(() => {
@@ -87,13 +89,19 @@ export default function FeedItem({
     }
   };
 
-  const handleComment = async (e: React.FormEvent) => {
+  const handleComment = async (e: React.FormEvent, parentId: string | null = null) => {
     e.preventDefault();
-    if (!commentText.trim() || !currentUserId) return;
+    const text = parentId ? replyText : commentText;
+    if (!text.trim() || !currentUserId) return;
     
     try {
-      await onComment(post.id, commentText.trim());
-      setCommentText('');
+      await onComment(post.id, text.trim(), parentId);
+      if (parentId) {
+        setReplyText('');
+        setReplyingTo(null);
+      } else {
+        setCommentText('');
+      }
       // Reload comments to show the new one
       await loadComments();
     } catch (error) {
@@ -340,39 +348,117 @@ export default function FeedItem({
             {loadingComments ? (
               <p className="text-gray-500 text-sm text-center py-4">Loading comments...</p>
             ) : comments.length > 0 ? (
-              comments.map((comment: any) => (
-                <div key={comment.id} className="flex space-x-3">
-                  <Link href={`/profile/${comment.user?.id}`}>
-                    <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
-                      {comment.user?.avatar_url ? (
-                        <Image
-                          src={comment.user.avatar_url}
-                          alt={comment.user.display_name}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white text-xs">
-                          {comment.user?.display_name?.charAt(0).toUpperCase()}
+              comments
+                .filter((c: any) => !c.parent_id) // Only show top-level comments
+                .map((comment: any) => {
+                  const replies = comments.filter((c: any) => c.parent_id === comment.id);
+                  return (
+                    <div key={comment.id} className="space-y-2">
+                      {/* Main Comment */}
+                      <div className="flex space-x-3">
+                        <Link href={`/profile/${comment.user?.id}`}>
+                          <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                            {comment.user?.avatar_url ? (
+                              <Image
+                                src={comment.user.avatar_url}
+                                alt={comment.user.display_name}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-white text-xs">
+                                {comment.user?.display_name?.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+                        <div className="flex-1 min-w-0">
+                          <div className="bg-gray-700 rounded-lg px-3 py-2">
+                            <Link href={`/profile/${comment.user?.id}`}>
+                              <p className="text-sm font-medium text-white hover:text-purple-300 transition-colors">
+                                {comment.user?.display_name}
+                              </p>
+                            </Link>
+                            <p className="text-sm text-gray-300 mt-1">{comment.content}</p>
+                          </div>
+                          <div className="flex items-center gap-3 mt-1 ml-3">
+                            <p className="text-xs text-gray-500">
+                              {formatDate(comment.created_at)}
+                            </p>
+                            {currentUserId && (
+                              <button
+                                onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                                className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                              >
+                                Reply
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Reply Form */}
+                          {replyingTo === comment.id && (
+                            <form onSubmit={(e) => handleComment(e, comment.id)} className="mt-2 ml-3">
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={replyText}
+                                  onChange={(e) => setReplyText(e.target.value)}
+                                  placeholder="Write a reply..."
+                                  className="flex-1 bg-gray-800 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                                <button
+                                  type="submit"
+                                  className="px-3 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
+                                >
+                                  Reply
+                                </button>
+                              </div>
+                            </form>
+                          )}
+
+                          {/* Nested Replies */}
+                          {replies.length > 0 && (
+                            <div className="mt-2 ml-6 space-y-2 border-l-2 border-gray-700 pl-3">
+                              {replies.map((reply: any) => (
+                                <div key={reply.id} className="flex space-x-2">
+                                  <Link href={`/profile/${reply.user?.id}`}>
+                                    <div className="relative w-6 h-6 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                                      {reply.user?.avatar_url ? (
+                                        <Image
+                                          src={reply.user.avatar_url}
+                                          alt={reply.user.display_name}
+                                          fill
+                                          className="object-cover"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-white text-xs">
+                                          {reply.user?.display_name?.charAt(0).toUpperCase()}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </Link>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="bg-gray-700/50 rounded-lg px-3 py-2">
+                                      <Link href={`/profile/${reply.user?.id}`}>
+                                        <p className="text-xs font-medium text-white hover:text-purple-300 transition-colors">
+                                          {reply.user?.display_name}
+                                        </p>
+                                      </Link>
+                                      <p className="text-xs text-gray-300 mt-1">{reply.content}</p>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1 ml-2">
+                                      {formatDate(reply.created_at)}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </Link>
-                  <div className="flex-1 min-w-0">
-                    <div className="bg-gray-700 rounded-lg px-3 py-2">
-                      <Link href={`/profile/${comment.user?.id}`}>
-                        <p className="text-sm font-medium text-white hover:text-purple-300 transition-colors">
-                          {comment.user?.display_name}
-                        </p>
-                      </Link>
-                      <p className="text-sm text-gray-300 mt-1">{comment.content}</p>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1 ml-3">
-                      {formatDate(comment.created_at)}
-                    </p>
-                  </div>
-                </div>
-              ))
+                  );
+                })
             ) : (
               <p className="text-gray-500 text-sm text-center py-4">
                 No comments yet. Be the first to comment!

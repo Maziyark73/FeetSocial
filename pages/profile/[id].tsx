@@ -194,7 +194,7 @@ export default function Profile() {
     }
   };
 
-  const handleComment = async (postId: string, text: string) => {
+  const handleComment = async (postId: string, text: string, parentId?: string | null) => {
     if (!currentUser) {
       router.push('/login');
       return;
@@ -208,6 +208,7 @@ export default function Profile() {
           post_id: postId,
           user_id: currentUser.id,
           content: text,
+          parent_id: parentId || null,
         });
 
       if (error) throw error;
