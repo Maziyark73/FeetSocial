@@ -57,13 +57,11 @@ export default function FeedItem({
   };
 
   const loadComments = async () => {
+    console.log('Loading comments for post:', post.id);
     setLoadingComments(true);
     try {
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
+      // Import the existing supabase client
+      const { supabase } = await import('../lib/supabase');
 
       const { data, error } = await (supabase as any)
         .from('comments')
@@ -75,7 +73,12 @@ export default function FeedItem({
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading comments:', error);
+        throw error;
+      }
+      
+      console.log('Comments loaded:', data);
       setComments(data || []);
     } catch (error) {
       console.error('Error loading comments:', error);
