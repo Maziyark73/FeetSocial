@@ -235,6 +235,74 @@ export default function Home() {
     }
   };
 
+  const handleComment = async (postId: string, text: string) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      if (DEMO_MODE) {
+        await demoFunctions.addComment(postId, user.id, text);
+        // Update local state
+        setPosts(prev => prev.map(post => 
+          post.id === postId 
+            ? { ...post, comments_count: (post.comments_count || 0) + 1 }
+            : post
+        ));
+        return;
+      }
+
+      // Create comment
+      const { error } = await (supabase as any)
+        .from('comments')
+        .insert({
+          post_id: postId,
+          user_id: user.id,
+          content: text,
+        });
+
+      if (error) throw error;
+
+      // Update local state
+      setPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? { ...post, comments_count: (post.comments_count || 0) + 1 }
+          : post
+      ));
+    } catch (error) {
+      console.error('Error posting comment:', error);
+      setError('Failed to post comment');
+    }
+  };
+
+  const handleDelete = async (postId: string) => {
+    if (!user) return;
+
+    try {
+      if (DEMO_MODE) {
+        await demoFunctions.deletePost(postId);
+        setPosts(prev => prev.filter(post => post.id !== postId));
+        return;
+      }
+
+      // Delete from database
+      const { error } = await (supabase as any)
+        .from('posts')
+        .delete()
+        .eq('id', postId)
+        .eq('user_id', user.id); // Extra safety check
+
+      if (error) throw error;
+
+      // Remove from local state
+      setPosts(prev => prev.filter(post => post.id !== postId));
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      setError('Failed to delete post');
+    }
+  };
+
   const handleTip = async (userId: string, amount: number) => {
     if (!user) {
       router.push('/login');
@@ -465,8 +533,10 @@ export default function Home() {
                   post={post}
                   currentUserId={user?.id}
                   onLike={handleLike}
+                  onComment={handleComment}
                   onUnlock={handleUnlock}
                   onTip={handleTip}
+                  onDelete={handleDelete}
                 />
               ))
             )}

@@ -194,6 +194,63 @@ export default function Profile() {
     }
   };
 
+  const handleComment = async (postId: string, text: string) => {
+    if (!currentUser) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      // Create comment
+      const { error } = await (supabase as any)
+        .from('comments')
+        .insert({
+          post_id: postId,
+          user_id: currentUser.id,
+          content: text,
+        });
+
+      if (error) throw error;
+
+      // Update local state
+      setPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? { ...post, comments_count: (post.comments_count || 0) + 1 }
+          : post
+      ));
+    } catch (error) {
+      console.error('Error posting comment:', error);
+    }
+  };
+
+  const handleDelete = async (postId: string) => {
+    if (!currentUser) return;
+
+    try {
+      // Delete from database
+      const { error } = await (supabase as any)
+        .from('posts')
+        .delete()
+        .eq('id', postId)
+        .eq('user_id', currentUser.id); // Extra safety check
+
+      if (error) throw error;
+
+      // Remove from local state
+      setPosts(prev => prev.filter(post => post.id !== postId));
+      
+      // Update user's post count
+      if (user) {
+        setUser(prev => prev ? { 
+          ...prev, 
+          posts_count: Math.max(0, (prev.posts_count || 0) - 1)
+        } : null);
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    }
+  };
+
   const handleTip = async (userId: string, amount: number) => {
     if (!currentUser) {
       router.push('/login');
@@ -456,8 +513,10 @@ export default function Profile() {
                       post={post}
                       currentUserId={currentUser?.id}
                       onLike={handleLike}
+                      onComment={handleComment}
                       onUnlock={handleUnlock}
                       onTip={handleTip}
+                      onDelete={handleDelete}
                     />
                   ))}
 

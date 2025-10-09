@@ -10,16 +10,20 @@ interface FeedItemProps {
   post: FeedItemType;
   currentUserId?: string;
   onLike: (postId: string) => void;
+  onComment: (postId: string, text: string) => void;
   onUnlock: (postId: string) => void;
   onTip: (userId: string, amount: number) => void;
+  onDelete?: (postId: string) => void;
 }
 
 export default function FeedItem({
   post,
   currentUserId,
   onLike,
+  onComment,
   onUnlock,
   onTip,
+  onDelete,
 }: FeedItemProps) {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -47,9 +51,12 @@ export default function FeedItem({
     e.preventDefault();
     if (!commentText.trim() || !currentUserId) return;
     
-    // TODO: Implement comment submission
-    console.log('Comment:', commentText);
-    setCommentText('');
+    try {
+      await onComment(post.id, commentText.trim());
+      setCommentText('');
+    } catch (error) {
+      console.error('Error posting comment:', error);
+    }
   };
 
   const renderMedia = () => {
@@ -157,6 +164,23 @@ export default function FeedItem({
           </Link>
           <p className="text-gray-400 text-sm">@{post.user.username}</p>
         </div>
+
+        {/* Delete button for own posts */}
+        {currentUserId === post.user_id && onDelete && (
+          <button
+            onClick={() => {
+              if (window.confirm('Are you sure you want to delete this post?')) {
+                onDelete(post.id);
+              }
+            }}
+            className="text-gray-400 hover:text-red-500 transition-colors p-2"
+            title="Delete post"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
         
         <div className="text-gray-400 text-sm">
           {formatDate(post.created_at)}
