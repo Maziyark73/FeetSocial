@@ -1,10 +1,32 @@
 import Mux from '@mux/mux-node';
 import { supabaseAdmin } from './supabase';
 
-const mux = new Mux(
-  process.env.MUX_TOKEN_ID!,
-  process.env.MUX_TOKEN_SECRET!
-);
+// Lazy-load Mux client to ensure env vars are available
+let muxClient: Mux | null = null;
+
+const getMuxClient = () => {
+  if (!muxClient) {
+    // Support both naming conventions
+    const tokenId = process.env.MUX_TOKEN_ID || process.env.MUX_TOKEN;
+    const tokenSecret = process.env.MUX_TOKEN_SECRET || process.env.MUX_SECRET;
+    
+    if (!tokenId || !tokenSecret) {
+      throw new Error('Mux credentials not configured. Please set MUX_TOKEN and MUX_SECRET in .env file');
+    }
+    
+    console.log('🎬 Initializing Mux client...');
+    muxClient = new Mux(tokenId, tokenSecret);
+  }
+  return muxClient;
+};
+
+// For backwards compatibility
+const mux = new Proxy({} as Mux, {
+  get: (target, prop) => {
+    const client = getMuxClient();
+    return (client as any)[prop];
+  }
+});
 
 // Create a Mux asset from a video file
 export const createMuxAsset = async (fileUrl: string, metadata?: {
