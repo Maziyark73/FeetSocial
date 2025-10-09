@@ -139,7 +139,11 @@ export default function FeedItem({
       );
     }
 
-    if (post.media_type === 'video' && post.playback_url) {
+    if (post.media_type === 'video') {
+      // Use playback_url (Mux HLS) if available, otherwise fall back to raw video URL
+      const videoUrl = post.playback_url || (post as any).video_url || post.image_url;
+      const isMuxVideo = post.playback_url && post.playback_url.includes('mux.com');
+      
       return (
         <div className="relative aspect-video w-full bg-gray-900 rounded-lg overflow-hidden">
           {post.is_vault && !(post as any).has_access ? (
@@ -156,15 +160,29 @@ export default function FeedItem({
                 </p>
               </div>
             </div>
-          ) : (
+          ) : videoUrl ? (
             <video
               controls
               className="w-full h-full object-cover"
               poster={post.image_url || undefined}
+              preload="metadata"
             >
-              <source src={post.playback_url || undefined} type="application/x-mpegURL" />
+              {isMuxVideo ? (
+                <source src={videoUrl} type="application/x-mpegURL" />
+              ) : (
+                <source src={videoUrl} type="video/mp4" />
+              )}
               Your browser does not support the video tag.
             </video>
+          ) : (
+            <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+              <div className="text-center text-gray-400">
+                <svg className="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+                <p className="text-sm">Video processing...</p>
+              </div>
+            </div>
           )}
         </div>
       );

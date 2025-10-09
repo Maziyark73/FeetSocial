@@ -89,7 +89,7 @@ export default function Upload() {
         is_vault: formData.isVault,
         vault_price: formData.isVault ? Math.round(parseFloat(formData.vaultPrice) * 100) : null,
         media_type: isVideo ? 'video' : 'image',
-        image_url: isVideo ? null : file.url,
+        image_url: isVideo ? file.url : file.url, // For videos, store URL temporarily until Mux processes
       };
 
       const post = await createPost(postData);
