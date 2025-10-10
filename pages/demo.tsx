@@ -122,6 +122,8 @@ export default function Demo() {
                 onLike={handleLike}
                 onUnlock={handleUnlock}
                 onTip={handleTip}
+                onComment={async () => {}}
+                onDelete={async () => {}}
               />
             ))}
           </div>
