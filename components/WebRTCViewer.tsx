@@ -14,6 +14,7 @@ export default function WebRTCViewer({ streamId, streamerId }: WebRTCViewerProps
   const [connectionState, setConnectionState] = useState<string>('connecting');
   const [isMuted, setIsMuted] = useState(true);
   const [connectionQuality, setConnectionQuality] = useState<'good' | 'poor' | 'unknown'>('unknown');
+  const [needsUserInteraction, setNeedsUserInteraction] = useState(false);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const viewerIdRef = useRef<string | null>(null);
@@ -186,8 +187,10 @@ export default function WebRTCViewer({ streamId, streamerId }: WebRTCViewerProps
             try {
               await videoRef.current.play();
               console.log('✅ Video playing');
+              setNeedsUserInteraction(false);
             } catch (playError) {
               console.warn('⚠️ Autoplay prevented, user interaction may be required:', playError);
+              setNeedsUserInteraction(true);
             }
             
             setConnectionState('connected');
@@ -355,8 +358,35 @@ export default function WebRTCViewer({ streamId, streamerId }: WebRTCViewerProps
         </div>
       )}
       
+      {/* Click to Play Overlay */}
+      {needsUserInteraction && connectionState === 'connected' && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-20 cursor-pointer"
+          onClick={async () => {
+            if (videoRef.current) {
+              try {
+                await videoRef.current.play();
+                setNeedsUserInteraction(false);
+                console.log('✅ Video playing after user interaction');
+              } catch (err) {
+                console.error('Error playing video:', err);
+              }
+            }
+          }}
+        >
+          <div className="text-center">
+            <div className="w-20 h-20 bg-purple-500 rounded-full flex items-center justify-center mb-4 mx-auto hover:bg-purple-600 transition-all">
+              <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </div>
+            <p className="text-white text-lg font-semibold">Click to Play</p>
+            <p className="text-gray-300 text-sm mt-1">Browser requires user interaction</p>
+          </div>
+        </div>
+      )}
+      
       {/* Unmute Button */}
-      {connectionState === 'connected' && (
+      {connectionState === 'connected' && !needsUserInteraction && (
         <button
           onClick={() => {
             setIsMuted(!isMuted);
