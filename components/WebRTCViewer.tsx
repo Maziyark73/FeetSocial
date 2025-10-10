@@ -61,16 +61,19 @@ export default function WebRTCViewer({ streamId, streamerId }: WebRTCViewerProps
       viewerIdRef.current = user.id;
       console.log('👁️ Initializing viewer:', user.id);
 
-      // Register as a viewer in the database
-      await (supabase as any)
+      // Register as a viewer in the database (try insert, if conflict then it already exists)
+      const { error: insertError } = await (supabase as any)
         .from('stream_viewers')
-        .upsert({
+        .insert({
           stream_id: streamId,
           viewer_id: user.id,
           last_seen: new Date().toISOString(),
-        }, {
-          onConflict: 'stream_id,viewer_id'
         });
+
+      // If insert failed due to conflict, that's fine - record already exists
+      if (insertError && !insertError.message?.includes('duplicate')) {
+        console.error('Error registering viewer:', insertError);
+      }
 
       console.log('✅ Registered as viewer');
 
