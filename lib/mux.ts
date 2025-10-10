@@ -328,7 +328,7 @@ export const createLiveStream = async (metadata?: {
 // Get live stream details
 export const getLiveStream = async (streamId: string) => {
   try {
-    const liveStream = await mux.Video.LiveStreams.retrieve(streamId);
+    const liveStream = await (mux.Video.LiveStreams as any).get(streamId);
     return liveStream;
   } catch (error) {
     console.error('Error getting live stream:', error);
