@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { supabaseAdmin } from '../../../lib/supabase';
 
 export default async function handler(
@@ -11,9 +10,17 @@ export default async function handler(
   }
 
   try {
-    // Verify authentication
-    const supabase = createServerSupabaseClient({ req, res });
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Get the auth token from the request headers
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized - Please log in' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+
+    // Verify the token with Supabase
+    const { data: { user }, error: authError } = await (supabaseAdmin as any).auth.getUser(token);
 
     if (authError || !user) {
       return res.status(401).json({ error: 'Unauthorized' });

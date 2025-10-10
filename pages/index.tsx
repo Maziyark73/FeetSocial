@@ -6,6 +6,7 @@ import { supabase, getCurrentUser } from '../lib/supabase';
 import { createTipCheckoutSession, createVaultUnlockSession } from '../lib/stripe';
 import { DEMO_MODE, demoFunctions } from '../lib/demo';
 import FeedItem from '../components/FeedItem';
+import WebRTCViewer from '../components/WebRTCViewer';
 import type { FeedItem as FeedItemType, User } from '../types';
 
 export default function Home() {
@@ -27,10 +28,26 @@ export default function Home() {
     loadLiveStreams();
   }, []);
 
-  // Poll for live stream updates
+  // Poll for live stream updates and subscribe to real-time changes
   useEffect(() => {
     const interval = setInterval(loadLiveStreams, 15000); // Refresh every 15 seconds
-    return () => clearInterval(interval);
+    
+    // Subscribe to live stream changes
+    const subscription = (supabase as any)
+      .channel('live-streams-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'live_streams' },
+        (payload: any) => {
+          console.log('Live stream change detected:', payload);
+          loadLiveStreams(); // Reload streams on any change
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(subscription);
+    };
   }, []);
 
   // Filter posts by tag
@@ -69,11 +86,40 @@ export default function Home() {
 
   const loadLiveStreams = async () => {
     try {
-      const { data, error } = await (supabase as any).rpc('get_active_live_streams');
-      if (error) throw error;
-      setLiveStreams(data || []);
+      // Query live streams and manually join with users
+      const { data: streams, error: streamsError } = await (supabase as any)
+        .from('live_streams')
+        .select('*')
+        .eq('status', 'active')
+        .order('started_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
+
+      if (streamsError) throw streamsError;
+      
+      if (!streams || streams.length === 0) {
+        setLiveStreams([]);
+        return;
+      }
+
+      // Fetch user data for each stream
+      const userIds = streams.map((s: any) => s.user_id);
+      const { data: users, error: usersError } = await (supabase as any)
+        .from('users')
+        .select('id, username, display_name, avatar_url')
+        .in('id', userIds);
+
+      if (usersError) throw usersError;
+
+      // Merge streams with their user data
+      const transformed = streams.map((stream: any) => ({
+        ...stream,
+        user: users?.find((u: any) => u.id === stream.user_id) || null,
+      }));
+      
+      setLiveStreams(transformed);
     } catch (error) {
       console.error('Error loading live streams:', error);
+      setLiveStreams([]); // Clear on error
     }
   };
 
@@ -402,6 +448,16 @@ export default function Home() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await (supabase as any).auth.signOut();
+      setUser(null);
+      router.push('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -473,6 +529,15 @@ export default function Home() {
                         )}
                       </div>
                     </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="text-gray-400 hover:text-red-500 transition-colors"
+                      title="Logout"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                    </button>
                   </>
                 ) : (
                   <div className="flex items-center space-x-3">
@@ -538,65 +603,112 @@ export default function Home() {
               <span className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></span>
               Live Now
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-6">
               {liveStreams.map((stream: any) => (
-                <Link
-                  key={stream.stream_id}
-                  href={`/live/${stream.stream_id}`}
-                  className="relative bg-gray-800 rounded-lg overflow-hidden hover:ring-2 hover:ring-purple-500 transition-all group"
+                <div
+                  key={stream.id}
+                  className="bg-gray-800 rounded-lg overflow-hidden"
                 >
-                  {/* Thumbnail */}
+                  {/* Stream Video - Embedded inline like TikTok/Instagram */}
                   <div className="relative aspect-video bg-gray-900">
-                    {stream.playback_url ? (
+                    {stream.stream_type === 'webrtc' ? (
+                      // Only show viewer if this is NOT the streamer's own stream
+                      user?.id !== stream.user_id ? (
+                        <WebRTCViewer
+                          streamId={stream.id}
+                          streamerId={stream.user_id}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="text-center">
+                            <p className="text-white font-bold text-lg mb-2">You're Live! 🎥</p>
+                            <p className="text-gray-400 text-sm">This is your own stream</p>
+                            <Link
+                              href="/go-live"
+                              className="mt-4 inline-block px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                            >
+                              Manage Stream
+                            </Link>
+                          </div>
+                        </div>
+                      )
+                    ) : stream.playback_url ? (
                       <video
                         src={stream.playback_url}
                         className="w-full h-full object-cover"
+                        controls
+                        autoPlay
                         muted
                         playsInline
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <svg className="w-12 h-12 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z"/>
-                        </svg>
+                        <div className="text-center">
+                          <svg className="w-16 h-16 text-gray-600 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                          </svg>
+                          <p className="text-gray-400">Stream starting...</p>
+                        </div>
                       </div>
                     )}
                     
                     {/* Live Badge */}
-                    <div className="absolute top-2 left-2 bg-red-600 px-2 py-1 rounded flex items-center gap-1">
+                    <div className="absolute top-3 left-3 bg-red-600 px-3 py-1.5 rounded-full flex items-center gap-2 z-10 shadow-lg">
                       <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                      <span className="text-white font-bold text-xs">LIVE</span>
+                      <span className="text-white font-bold text-sm">LIVE</span>
                     </div>
 
                     {/* Viewer Count */}
-                    <div className="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded">
-                      <span className="text-white text-xs">👁️ {stream.viewer_count || 0}</span>
+                    <div className="absolute top-3 right-3 bg-black/70 px-3 py-1.5 rounded-full z-10 backdrop-blur-sm">
+                      <span className="text-white text-sm font-medium">👁️ {stream.viewer_count || 0}</span>
                     </div>
                   </div>
 
                   {/* Stream Info */}
-                  <div className="p-3">
-                    <h3 className="text-white font-medium line-clamp-2 group-hover:text-purple-300 transition-colors">
+                  <div className="p-4 border-b border-gray-700">
+                    <div className="flex items-center justify-between mb-3">
+                      <Link
+                        href={`/profile/${stream.user_id}`}
+                        className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+                      >
+                        <div className="relative w-10 h-10 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                          {stream.avatar_url ? (
+                            <img
+                              src={stream.avatar_url}
+                              alt={stream.display_name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                              {stream.display_name?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-white font-semibold">{stream.display_name}</p>
+                          <p className="text-xs text-gray-400">@{stream.username}</p>
+                        </div>
+                      </Link>
+                      
+                      <Link
+                        href={`/live/${stream.id}`}
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                        </svg>
+                        Chat
+                      </Link>
+                    </div>
+                    
+                    <h3 className="text-white font-bold text-lg mb-1">
                       {stream.title}
                     </h3>
-                    <div className="flex items-center space-x-2 mt-2">
-                      <div className="relative w-6 h-6 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
-                        {stream.avatar_url ? (
-                          <img
-                            src={stream.avatar_url}
-                            alt={stream.display_name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-white text-xs">
-                            {stream.display_name?.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-gray-400 text-sm">{stream.display_name}</p>
-                    </div>
+                    {stream.description && (
+                      <p className="text-gray-400 text-sm">{stream.description}</p>
+                    )}
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           </div>

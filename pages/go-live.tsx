@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
+import WebRTCStreamer from '../components/WebRTCStreamer';
 import type { User } from '../types';
 
 export default function GoLive() {
@@ -12,12 +13,14 @@ export default function GoLive() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
   const [streamData, setStreamData] = useState<any>(null);
+  const [streamMode, setStreamMode] = useState<'quick' | 'pro' | null>(null); // New: stream mode selector
   
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     isVault: false,
     vaultPrice: '',
+    streamType: 'webrtc' as 'webrtc' | 'rtmp', // Default to Quick Stream (webrtc)
   });
 
   useEffect(() => {
@@ -66,14 +69,25 @@ export default function GoLive() {
     setError('');
 
     try {
+      // Get the current session token
+      const { data: { session } } = await (supabase as any).auth.getSession();
+      
+      if (!session?.access_token) {
+        throw new Error('You must be logged in to create a stream');
+      }
+
       const response = await fetch('/api/live/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           title: formData.title,
           description: formData.description,
           isVault: formData.isVault,
           vaultPrice: formData.vaultPrice,
+          streamType: formData.streamType, // Pass stream type
         }),
       });
 
@@ -84,6 +98,8 @@ export default function GoLive() {
 
       const data = await response.json();
       setStreamData(data);
+      // Automatically set the stream mode based on the stream type
+      setStreamMode(data.streamType === 'webrtc' ? 'quick' : 'pro');
     } catch (error: any) {
       console.error('Error creating stream:', error);
       setError(error.message || 'Failed to create stream');
@@ -96,9 +112,19 @@ export default function GoLive() {
     if (!streamData) return;
 
     try {
+      // Get the current session token
+      const { data: { session } } = await (supabase as any).auth.getSession();
+      
+      if (!session?.access_token) {
+        throw new Error('You must be logged in');
+      }
+
       const response = await fetch('/api/live/update', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           streamId: streamData.id,
           action: 'start',
@@ -109,8 +135,9 @@ export default function GoLive() {
         throw new Error('Failed to start stream');
       }
 
-      // Redirect to live stream page
-      router.push(`/live/${streamData.id}`);
+      // Don't redirect! Streamer should stay on this page to manage their stream
+      // Viewers will see the stream on the home page or /live/[id] page
+      console.log('✅ Stream marked as active in database');
     } catch (error: any) {
       console.error('Error starting stream:', error);
       setError(error.message || 'Failed to start stream');
@@ -165,6 +192,43 @@ export default function GoLive() {
               <h2 className="text-xl font-bold text-white mb-6">Set Up Your Live Stream</h2>
               
               <form onSubmit={handleCreateStream} className="space-y-6">
+                {/* Stream Type Selector */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Streaming Method *
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, streamType: 'webrtc' })}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        formData.streamType === 'webrtc'
+                          ? 'border-purple-500 bg-purple-600/20'
+                          : 'border-gray-600 bg-gray-700 hover:border-gray-500'
+                      }`}
+                    >
+                      <div className="text-left">
+                        <div className="font-bold text-white mb-1">📱 Quick Stream</div>
+                        <div className="text-xs text-gray-400">Browser/Phone Camera</div>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, streamType: 'rtmp' })}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        formData.streamType === 'rtmp'
+                          ? 'border-purple-500 bg-purple-600/20'
+                          : 'border-gray-600 bg-gray-700 hover:border-gray-500'
+                      }`}
+                    >
+                      <div className="text-left">
+                        <div className="font-bold text-white mb-1">🎬 Pro Stream</div>
+                        <div className="text-xs text-gray-400">OBS Studio (Desktop)</div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Stream Title *
@@ -231,11 +295,27 @@ export default function GoLive() {
                 </button>
               </form>
             </div>
-          ) : (
-            /* Stream Credentials */
+          ) : streamMode === 'quick' ? (
+            /* Quick Stream (WebRTC) */
             <div className="space-y-6">
               <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-bold text-white mb-4">Stream Created! 🎥</h2>
+                <h2 className="text-xl font-bold text-white mb-4">📱 Quick Stream - Browser Camera</h2>
+                
+                <WebRTCStreamer
+                  streamId={streamData.id}
+                  streamKey={streamData.streamCredentials.streamKey}
+                  onStreamStart={handleStartStream}
+                  onStreamEnd={() => router.push('/')}
+                  onError={(err) => setError(err)}
+                />
+              </div>
+            </div>
+          ) : (
+            /* Pro Stream (OBS) */
+            <div className="space-y-6">
+              <div className="bg-gray-800 rounded-lg p-6">
+                <h2 className="text-xl font-bold text-white mb-4">🎬 Pro Stream with OBS Studio</h2>
+                
                 <p className="text-gray-300 mb-6">
                   Use these credentials in your streaming software (OBS, Streamlabs, etc.)
                 </p>

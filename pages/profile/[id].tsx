@@ -25,6 +25,7 @@ export default function Profile() {
   useEffect(() => {
     if (id) {
       loadProfile();
+      loadPosts(); // Load posts when profile loads
     }
   }, [id]);
 
@@ -95,9 +96,7 @@ export default function Profile() {
         .from('posts')
         .select(`
           *,
-          user:users(*),
-          likes_count:likes(count),
-          comments_count:comments(count)
+          user:users(*)
         `)
         .eq('user_id', id)
         .order('created_at', { ascending: false })
@@ -105,7 +104,7 @@ export default function Profile() {
 
       if (error) throw error;
 
-      // Check if current user has liked each post
+      // Check if current user has liked each post and get counts
       const postsWithLikes = await Promise.all(
         (data || []).map(async (post: any) => {
           let isLiked = false;
@@ -131,10 +130,24 @@ export default function Profile() {
             hasAccess = !!access;
           }
 
+          // Get like count
+          const { count: likesCount } = await (supabase as any)
+            .from('likes')
+            .select('*', { count: 'exact', head: true })
+            .eq('post_id', post.id);
+
+          // Get comment count
+          const { count: commentsCount } = await (supabase as any)
+            .from('comments')
+            .select('*', { count: 'exact', head: true })
+            .eq('post_id', post.id);
+
           return {
             ...post,
             is_liked: isLiked,
             has_access: hasAccess,
+            likes_count: likesCount || 0,
+            comments_count: commentsCount || 0,
           };
         })
       );

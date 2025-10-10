@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '../../lib/supabase';
 import LivePlayer from '../../components/LivePlayer';
+import WebRTCViewer from '../../components/WebRTCViewer';
+import LiveStreamChat from '../../components/LiveStreamChat';
 
 export default function LiveStream() {
   const router = useRouter();
@@ -32,16 +34,30 @@ export default function LiveStream() {
 
     const loadStream = async () => {
       try {
-        const { data, error } = await (supabase as any)
+        // Query stream
+        const { data: streamData, error: streamError } = await (supabase as any)
           .from('live_streams')
-          .select(`
-            *,
-            user:users(id, username, display_name, avatar_url, is_creator)
-          `)
+          .select('*')
           .eq('id', id)
           .single();
 
-        if (error) throw error;
+        if (streamError) throw streamError;
+
+        // Manually fetch user data
+        const { data: userData, error: userError } = await (supabase as any)
+          .from('users')
+          .select('id, username, display_name, avatar_url, is_creator')
+          .eq('id', streamData.user_id)
+          .single();
+
+        if (userError) throw userError;
+
+        // Merge stream with user data
+        const data = {
+          ...streamData,
+          user: userData,
+        };
+
         setStream(data);
 
         // Join as viewer if logged in
@@ -99,9 +115,19 @@ export default function LiveStream() {
     if (!confirm('Are you sure you want to end this stream?')) return;
 
     try {
+      const { data: { session } } = await (supabase as any).auth.getSession();
+      
+      if (!session?.access_token) {
+        setError('You must be logged in to end the stream');
+        return;
+      }
+
       await fetch('/api/live/update', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           streamId: stream.id,
           action: 'end',
@@ -158,12 +184,20 @@ export default function LiveStream() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Video Player */}
             <div className="lg:col-span-2">
-              <LivePlayer
-                playbackUrl={stream.playback_url}
-                title={stream.title}
-                isLive={stream.status === 'active'}
-                viewerCount={stream.viewer_count || 0}
-              />
+              {/* Use WebRTC viewer for Quick Streams, HLS player for Pro Streams */}
+              {stream.stream_type === 'webrtc' ? (
+                <WebRTCViewer
+                  streamId={stream.id}
+                  streamerId={stream.user_id}
+                />
+              ) : (
+                <LivePlayer
+                  playbackUrl={stream.playback_url}
+                  title={stream.title}
+                  isLive={stream.status === 'active'}
+                  viewerCount={stream.viewer_count || 0}
+                />
+              )}
 
               {/* Stream Info */}
               <div className="mt-6 space-y-4">
@@ -211,29 +245,14 @@ export default function LiveStream() {
               </div>
             </div>
 
-            {/* Chat / Info Sidebar */}
+            {/* Chat Sidebar */}
             <div className="lg:col-span-1">
-              <div className="bg-gray-800 rounded-lg p-4 h-[600px] flex flex-col">
-                <h3 className="text-white font-bold mb-4">Live Chat</h3>
-                <div className="flex-1 overflow-y-auto mb-4 space-y-2">
-                  <p className="text-gray-400 text-sm text-center py-8">
-                    Chat feature coming soon!
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Send a message..."
-                    className="flex-1 bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-                    disabled
-                  />
-                  <button
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors opacity-50 cursor-not-allowed"
-                    disabled
-                  >
-                    Send
-                  </button>
-                </div>
+              <div className="h-[600px]">
+                <LiveStreamChat
+                  streamId={stream.id}
+                  currentUserId={currentUser?.id}
+                  isStreamer={currentUser?.id === stream.user_id}
+                />
               </div>
             </div>
           </div>
