@@ -4,7 +4,6 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { supabase, getCurrentUser } from '../lib/supabase';
 import { createTipCheckoutSession, createVaultUnlockSession } from '../lib/stripe';
-import { DEMO_MODE, demoFunctions } from '../lib/demo';
 import FeedItem from '../components/FeedItem';
 import WebRTCViewer from '../components/WebRTCViewer';
 import type { FeedItem as FeedItemType, User } from '../types';
@@ -61,12 +60,6 @@ export default function Home() {
 
   const loadUser = async () => {
     try {
-      if (DEMO_MODE) {
-        const demoUser = await demoFunctions.getCurrentUser();
-        setUser(demoUser);
-        return;
-      }
-
       const currentUser = await getCurrentUser();
       if (currentUser) {
         const { data: profile } = await (supabase as any)
@@ -125,19 +118,6 @@ export default function Home() {
 
   const loadPosts = async (offset = 0) => {
     try {
-      if (DEMO_MODE) {
-        const demoPosts = await demoFunctions.getFeedPosts(user?.id, 20, offset);
-        if (offset === 0) {
-          setPosts(demoPosts);
-        } else {
-          setPosts(prev => [...prev, ...demoPosts]);
-        }
-        setHasMore(demoPosts.length === 20);
-        setLoading(false);
-        setLoadingMore(false);
-        return;
-      }
-
       const { data, error } = await (supabase as any).rpc('get_feed_posts', {
         user_uuid: user?.id || null,
         limit_count: 20,
@@ -217,20 +197,6 @@ export default function Home() {
     }
 
     try {
-      if (DEMO_MODE) {
-        await demoFunctions.toggleLike(postId, user.id);
-        setPosts(prev => prev.map(post => 
-          post.id === postId 
-            ? { 
-                ...post, 
-                is_liked: !post.is_liked, 
-                likes_count: post.is_liked ? post.likes_count - 1 : post.likes_count + 1
-              }
-            : post
-        ));
-        return;
-      }
-
       // Check if already liked
       const { data: existingLike } = await (supabase as any)
         .from('likes')
@@ -288,11 +254,6 @@ export default function Home() {
       const post = posts.find(p => p.id === postId);
       if (!post || !post.vault_price) return;
 
-      if (DEMO_MODE) {
-        await demoFunctions.unlockVault(postId, user.id, post.vault_price);
-        return;
-      }
-
       // Create checkout session
       const session = await createVaultUnlockSession({
         fromUserId: user.id,
@@ -319,17 +280,6 @@ export default function Home() {
     }
 
     try {
-      if (DEMO_MODE) {
-        await demoFunctions.addComment(postId, user.id, text);
-        // Update local state
-        setPosts(prev => prev.map(post => 
-          post.id === postId 
-            ? { ...post, comments_count: (post.comments_count || 0) + 1 }
-            : post
-        ));
-        return;
-      }
-
       // Create comment
       const { data, error } = await (supabase as any)
         .from('comments')
@@ -365,12 +315,6 @@ export default function Home() {
     if (!user) return;
 
     try {
-      if (DEMO_MODE) {
-        await demoFunctions.deletePost(postId);
-        setPosts(prev => prev.filter(post => post.id !== postId));
-        return;
-      }
-
       // Delete from database
       const { error } = await (supabase as any)
         .from('posts')
@@ -395,11 +339,6 @@ export default function Home() {
     }
 
     try {
-      if (DEMO_MODE) {
-        await demoFunctions.sendTip(user.id, userId, amount);
-        return;
-      }
-
       // Create tip checkout session
       const session = await createTipCheckoutSession({
         fromUserId: user.id,
@@ -575,26 +514,6 @@ export default function Home() {
             </div>
           )}
 
-        {/* Demo Mode Banner */}
-        {DEMO_MODE && (
-          <div className="mb-8 bg-gradient-to-r from-yellow-900/50 to-orange-900/50 border border-yellow-500/30 rounded-lg p-6 text-center">
-            <div className="flex items-center justify-center mb-2">
-              <svg className="w-6 h-6 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-              <h1 className="text-2xl font-bold text-white">
-                Demo Mode Active
-              </h1>
-            </div>
-            <p className="text-gray-300 mb-4">
-              You're viewing FeetSocial in demo mode. All features are functional with mock data!
-            </p>
-            <div className="text-sm text-gray-400 space-y-1">
-              <p>✅ Try liking posts, tipping creators, and unlocking vault content</p>
-              <p>📝 See test-env-setup.md to configure real services</p>
-            </div>
-          </div>
-        )}
 
         {/* Live Streams Section */}
         {liveStreams.length > 0 && (
@@ -751,7 +670,7 @@ export default function Home() {
         })()}
 
         {/* Welcome Message */}
-        {!user && !DEMO_MODE && (
+        {!user && (
           <div className="mb-8 bg-gradient-to-r from-purple-900/50 to-blue-900/50 border border-purple-500/30 rounded-lg p-6 text-center">
             <h1 className="text-2xl font-bold text-white mb-2">
               Welcome to FeetSocial
