@@ -364,15 +364,31 @@ export default function WebRTCViewer({ streamId, streamerId }: WebRTCViewerProps
       {/* Click to Play Overlay */}
       {needsUserInteraction && connectionState === 'connected' && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-20 cursor-pointer"
-          onClick={async () => {
+          onClick={() => {
+            console.log('🖱️ Play button clicked!');
+            console.log('📹 Video element:', videoRef.current);
+            console.log('📺 Video srcObject:', videoRef.current?.srcObject);
             if (videoRef.current) {
-              try {
-                await videoRef.current.play();
-                setNeedsUserInteraction(false);
-                console.log('✅ Video playing after user interaction');
-              } catch (err) {
-                console.error('Error playing video:', err);
+              const video = videoRef.current;
+              // Force muted to true to allow autoplay
+              video.muted = true;
+              console.log('🔇 Forcing muted = true');
+              
+              const playPromise = video.play();
+              console.log('▶️ Play promise created:', playPromise);
+              
+              if (playPromise !== undefined) {
+                playPromise
+                  .then(() => {
+                    console.log('✅ Video playing after user interaction');
+                    setNeedsUserInteraction(false);
+                  })
+                  .catch((err) => {
+                    console.error('❌ Error playing video:', err);
+                  });
               }
+            } else {
+              console.error('❌ Video ref is null!');
             }
           }}
         >
