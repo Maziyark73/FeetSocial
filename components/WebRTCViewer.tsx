@@ -61,7 +61,16 @@ export default function WebRTCViewer({ streamId, streamerId }: WebRTCViewerProps
       viewerIdRef.current = user.id;
       console.log('👁️ Initializing viewer:', user.id);
 
-      // Register as a viewer in the database (try insert, if conflict then it already exists)
+      // Clean up any stale records for this viewer on this stream (from previous sessions)
+      await (supabase as any)
+        .from('stream_viewers')
+        .delete()
+        .eq('stream_id', streamId)
+        .eq('viewer_id', user.id);
+      
+      console.log('🧹 Cleaned up old viewer records');
+
+      // Register as a viewer in the database (fresh insert)
       const { error: insertError } = await (supabase as any)
         .from('stream_viewers')
         .insert({
@@ -70,12 +79,20 @@ export default function WebRTCViewer({ streamId, streamerId }: WebRTCViewerProps
           last_seen: new Date().toISOString(),
         });
 
-      // If insert failed due to conflict, that's fine - record already exists
-      if (insertError && !insertError.message?.includes('duplicate')) {
+      if (insertError) {
         console.error('Error registering viewer:', insertError);
       }
 
       console.log('✅ Registered as viewer');
+
+      // Clean up any old signals for this viewer (from previous sessions)
+      await (supabase as any)
+        .from('webrtc_signals')
+        .delete()
+        .eq('stream_id', streamId)
+        .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`);
+      
+      console.log('🧹 Cleaned up old signals');
 
       // Send a signal to the streamer that we joined
       await sendSignal(streamerId, 'viewer-join', {});
