@@ -6,6 +6,7 @@ import { supabase, getCurrentUser } from '../lib/supabase';
 import { createTipCheckoutSession, createVaultUnlockSession } from '../lib/stripe';
 import FeedItem from '../components/FeedItem';
 import WebRTCViewer from '../components/WebRTCViewer';
+import HLSViewer from '../components/HLSViewer';
 import type { FeedItem as FeedItemType, User } from '../types';
 
 export default function Home() {
@@ -552,13 +553,12 @@ export default function Home() {
                         </div>
                       )
                     ) : stream.playback_url ? (
-                      <video
-                        src={stream.playback_url}
-                        className="w-full h-full object-cover"
-                        controls
-                        autoPlay
-                        muted
-                        playsInline
+                      // HLS Viewer for WHIP/RTMP streams (unlimited viewers, TikTok-quality)
+                      <HLSViewer
+                        playbackUrl={stream.playback_url}
+                        autoplay={true}
+                        muted={true}
+                        className="w-full h-full"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">

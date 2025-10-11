@@ -298,26 +298,38 @@ export const getVideoAspectRatio = async (assetId: string) => {
 // LIVE STREAMING FUNCTIONS
 // ============================================
 
-// Create a new live stream
+// Create a new live stream (supports both RTMP and WebRTC/WHIP)
 export const createLiveStream = async (metadata?: {
   title?: string;
   description?: string;
+  useWebRTC?: boolean; // Set to true for browser-based streaming via WHIP
 }) => {
   try {
-    const liveStream = await mux.Video.LiveStreams.create({
+    const config: any = {
       playback_policy: ['public'],
       new_asset_settings: {
         playback_policy: ['public'],
       },
       reconnect_window: 60, // Allow reconnection within 60 seconds
-      ...metadata,
-    });
+      latency_mode: 'low', // Low latency for live streams
+    };
+
+    // Enable WebRTC (WHIP) if requested
+    if (metadata?.useWebRTC) {
+      config.use_slate_for_standard_latency = false;
+      // WHIP is enabled by default when creating a live stream
+      // Mux will provide both RTMP and WHIP endpoints
+    }
+
+    const liveStream = await mux.Video.LiveStreams.create(config);
 
     return {
       id: liveStream.id,
       streamKey: liveStream.stream_key,
       playbackIds: liveStream.playback_ids,
       status: liveStream.status,
+      // WHIP endpoint for WebRTC ingestion
+      whipEndpoint: `https://stream.mux.com/whip/${liveStream.id}`,
     };
   } catch (error) {
     console.error('Error creating live stream:', error);

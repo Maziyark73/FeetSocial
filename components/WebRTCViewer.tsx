@@ -94,6 +94,9 @@ export default function WebRTCViewer({ streamId, streamerId }: WebRTCViewerProps
       
       console.log('🧹 Cleaned up old signals');
 
+      // Wait a moment for cleanup to complete in the database
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Send a signal to the streamer that we joined
       await sendSignal(streamerId, 'viewer-join', {});
 

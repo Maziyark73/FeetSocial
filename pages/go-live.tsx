@@ -4,6 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 import WebRTCStreamer from '../components/WebRTCStreamer';
+import WHIPStreamer from '../components/WHIPStreamer';
 import type { User } from '../types';
 
 export default function GoLive() {
@@ -20,7 +21,7 @@ export default function GoLive() {
     description: '',
     isVault: false,
     vaultPrice: '',
-    streamType: 'webrtc' as 'webrtc' | 'rtmp', // Default to Quick Stream (webrtc)
+    streamType: 'whip' as 'whip' | 'webrtc' | 'rtmp', // Default to WHIP (browser → Mux → HLS)
   });
 
   useEffect(() => {
@@ -99,7 +100,10 @@ export default function GoLive() {
       const data = await response.json();
       setStreamData(data);
       // Automatically set the stream mode based on the stream type
-      setStreamMode(data.streamType === 'webrtc' ? 'quick' : 'pro');
+      // whip = quick (browser streaming via Mux WHIP)
+      // webrtc = quick (legacy peer-to-peer)
+      // rtmp = pro (OBS streaming)
+      setStreamMode(data.streamType === 'rtmp' ? 'pro' : 'quick');
     } catch (error: any) {
       console.error('Error creating stream:', error);
       setError(error.message || 'Failed to create stream');
@@ -296,18 +300,35 @@ export default function GoLive() {
               </form>
             </div>
           ) : streamMode === 'quick' ? (
-            /* Quick Stream (WebRTC) */
+            /* Quick Stream (WHIP or WebRTC) */
             <div className="space-y-6">
               <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-bold text-white mb-4">📱 Quick Stream - Browser Camera</h2>
+                <h2 className="text-xl font-bold text-white mb-4">
+                  📱 Quick Stream - Browser Camera
+                  {streamData.streamType === 'whip' && (
+                    <span className="ml-2 text-sm text-green-400">(HLS - Unlimited Viewers)</span>
+                  )}
+                </h2>
                 
-                <WebRTCStreamer
-                  streamId={streamData.id}
-                  streamKey={streamData.streamCredentials.streamKey}
-                  onStreamStart={handleStartStream}
-                  onStreamEnd={() => router.push('/')}
-                  onError={(err) => setError(err)}
-                />
+                {streamData.streamType === 'whip' && streamData.streamCredentials.whipEndpoint ? (
+                  /* New WHIP Streamer (Browser → Mux → HLS) */
+                  <WHIPStreamer
+                    whipEndpoint={streamData.streamCredentials.whipEndpoint}
+                    streamId={streamData.id}
+                    onStreamReady={handleStartStream}
+                    onStreamEnd={() => router.push('/')}
+                    onError={(err) => setError(err)}
+                  />
+                ) : (
+                  /* Legacy WebRTC Streamer (peer-to-peer) */
+                  <WebRTCStreamer
+                    streamId={streamData.id}
+                    streamKey={streamData.streamCredentials.streamKey}
+                    onStreamStart={handleStartStream}
+                    onStreamEnd={() => router.push('/')}
+                    onError={(err) => setError(err)}
+                  />
+                )}
               </div>
             </div>
           ) : (

@@ -41,26 +41,29 @@ export default async function handler(
       return res.status(400).json({ error: 'Title is required' });
     }
 
-    const type = streamType || 'rtmp'; // Default to RTMP for backwards compatibility
+    const type = streamType || 'whip'; // Default to WHIP for browser streaming
 
     let muxStream: any = null;
     let playbackId: string | null = null;
     let playbackUrl: string | null = null;
     let streamKey: string | null = null;
+    let whipEndpoint: string | null = null;
 
-    // Only create Mux stream for RTMP (Pro Stream)
-    if (type === 'rtmp') {
-      // Create Mux live stream
+    // Create Mux stream for both RTMP and WHIP
+    if (type === 'rtmp' || type === 'whip') {
+      // Create Mux live stream (supports both RTMP and WHIP)
       muxStream = await createLiveStream({
         title,
         description,
+        useWebRTC: type === 'whip', // Enable WebRTC/WHIP for browser streaming
       });
 
       playbackId = muxStream.playbackIds?.[0]?.id || null;
       playbackUrl = playbackId ? getLiveStreamPlaybackUrl(playbackId) : null;
       streamKey = muxStream.streamKey;
-    } else {
-      // For WebRTC (Quick Stream), generate a unique stream key
+      whipEndpoint = muxStream.whipEndpoint;
+    } else if (type === 'webrtc') {
+      // Legacy WebRTC (peer-to-peer) - still supported but not recommended for scale
       streamKey = `webrtc-${user.id}-${Date.now()}`;
     }
 
@@ -93,10 +96,13 @@ export default async function handler(
       playbackUrl: stream.playback_url,
       status: stream.status,
       streamType: type,
-      // Stream credentials (for OBS if RTMP, for WebRTC signaling if webrtc)
+      // Stream credentials
       streamCredentials: {
+        // RTMP for OBS
         serverUrl: type === 'rtmp' ? 'rtmps://global-live.mux.com:443/app' : null,
         streamKey: streamKey,
+        // WHIP endpoint for browser streaming
+        whipEndpoint: whipEndpoint,
       },
     });
   } catch (error: any) {
