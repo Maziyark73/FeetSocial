@@ -168,15 +168,24 @@ export default function WebRTCStreamer({
         }
       }
     } else if (signal.signal_type === 'viewer-join') {
-      // New viewer joined - create peer connection and send offer
-      console.log('🎯 New viewer joined:', viewerId);
+      // Viewer joined - create or recreate peer connection and send offer
+      console.log('🎯 Viewer joined:', viewerId);
+      
+      // If peer connection already exists, close it first (viewer reconnected)
+      const existingPc = peerConnectionsRef.current.get(viewerId);
+      if (existingPc) {
+        console.log('🔄 Viewer reconnected, closing old connection');
+        existingPc.close();
+        peerConnectionsRef.current.delete(viewerId);
+      }
+      
       await createPeerConnection(viewerId, stream);
     }
   };
 
   // Create peer connection for a viewer
   const createPeerConnection = async (viewerId: string, stream: MediaStream) => {
-    // Don't create duplicate connections
+    // Check if connection already exists (shouldn't happen after the fix above, but just in case)
     if (peerConnectionsRef.current.has(viewerId)) {
       console.log('⚠️ Peer connection already exists for viewer:', viewerId);
       return;
