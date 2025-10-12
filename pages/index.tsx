@@ -589,29 +589,28 @@ export default function Home() {
                 >
                   {/* Stream Video - Embedded inline like TikTok/Instagram */}
                   <div className="relative aspect-video bg-gray-900">
-                    {stream.stream_type === 'webrtc' ? (
-                      // Only show viewer if this is NOT the streamer's own stream
-                      user?.id !== stream.user_id ? (
-                        <WebRTCViewer
-                          streamId={stream.id}
-                          streamerId={stream.user_id}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="text-center">
-                            <p className="text-white font-bold text-lg mb-2">You're Live! 🎥</p>
-                            <p className="text-gray-400 text-sm">This is your own stream</p>
-                            <Link
-                              href="/go-live"
-                              className="mt-4 inline-block px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
-                            >
-                              Manage Stream
-                            </Link>
-                          </div>
+                    {/* Show "You're Live" message if viewing your own stream */}
+                    {user?.id === stream.user_id ? (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-center">
+                          <p className="text-white font-bold text-lg mb-2">You're Live! 🎥</p>
+                          <p className="text-gray-400 text-sm">This is your own stream</p>
+                          <Link
+                            href="/go-live"
+                            className="mt-4 inline-block px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                          >
+                            Manage Stream
+                          </Link>
                         </div>
-                      )
+                      </div>
+                    ) : stream.stream_type === 'webrtc' ? (
+                      // WebRTC peer-to-peer viewer (legacy)
+                      <WebRTCViewer
+                        streamId={stream.id}
+                        streamerId={stream.user_id}
+                      />
                     ) : stream.playback_url ? (
-                      // Fallback to simple video player (HLS player disabled for now)
+                      // WHIP/RTMP streams use HLS playback
                       <video
                         src={stream.playback_url}
                         className="w-full h-full object-contain"
