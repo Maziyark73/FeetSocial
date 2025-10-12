@@ -270,10 +270,10 @@ export default function WHIPStreamer({
 
   return (
     <div className="relative bg-gray-900 rounded-lg overflow-hidden">
-      {/* Video Preview */}
+      {/* Video Preview - Bigger on mobile */}
       <video
         ref={videoRef}
-        className="w-full h-auto max-h-[70vh] object-contain bg-black"
+        className="w-full h-auto max-h-[85vh] object-contain bg-black"
         muted
         playsInline
       />
@@ -303,23 +303,24 @@ export default function WHIPStreamer({
         )}
       </div>
 
-      {/* End Stream Button */}
+      {/* End Stream Button - Smaller on mobile */}
       {streaming && (
         <div className="absolute bottom-4 right-4">
           <button
             onClick={handleEndStream}
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold transition-colors flex items-center gap-2"
+            className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 md:px-6 md:py-3 rounded-lg font-bold transition-colors flex items-center gap-2 text-sm md:text-base"
           >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" />
             </svg>
-            End Stream
+            <span className="hidden sm:inline">End Stream</span>
+            <span className="sm:hidden">End</span>
           </button>
         </div>
       )}
 
-      {/* Info */}
-      <div className="absolute bottom-4 left-4 bg-black/60 text-white px-4 py-2 rounded-lg text-sm">
+      {/* Info - Hidden on mobile for more space */}
+      <div className="hidden md:block absolute bottom-4 left-4 bg-black/60 text-white px-4 py-2 rounded-lg text-sm">
         <p className="font-bold">Streaming to Mux</p>
         <p className="text-xs text-gray-300">Viewers can watch via HLS</p>
       </div>

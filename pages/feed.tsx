@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Link from 'next/link';
 import { supabase, getCurrentUser } from '../lib/supabase';
 import TikTokFeedItem from '../components/TikTokFeedItem';
 import type { FeedItem as FeedItemType, User } from '../types';
@@ -9,6 +10,7 @@ export default function TikTokFeed() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<FeedItemType[]>([]);
+  const [liveStreams, setLiveStreams] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -20,7 +22,14 @@ export default function TikTokFeed() {
   // Load posts after user is loaded
   useEffect(() => {
     loadPosts();
+    loadLiveStreams();
   }, [user]);
+
+  // Poll for live streams
+  useEffect(() => {
+    const interval = setInterval(loadLiveStreams, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   const loadUser = async () => {
     try {
@@ -72,6 +81,38 @@ export default function TikTokFeed() {
       console.error('Error loading posts:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadLiveStreams = async () => {
+    try {
+      const { data: streams, error } = await (supabase as any)
+        .from('live_streams')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Manually fetch user data for each stream
+      const streamsWithUsers = await Promise.all(
+        (streams || []).map(async (stream: any) => {
+          const { data: userData } = await (supabase as any)
+            .from('users')
+            .select('id, username, display_name, avatar_url')
+            .eq('id', stream.user_id)
+            .single();
+
+          return {
+            ...stream,
+            user: userData,
+          };
+        })
+      );
+
+      setLiveStreams(streamsWithUsers);
+    } catch (error) {
+      console.error('Error loading live streams:', error);
     }
   };
 
@@ -165,6 +206,48 @@ export default function TikTokFeed() {
         ref={containerRef}
         className="h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide bg-black"
       >
+        {/* Live Streams First */}
+        {liveStreams.map((stream) => (
+          <div key={`stream-${stream.id}`} className="h-screen snap-start relative flex items-center justify-center bg-black">
+            {user?.id === stream.user_id ? (
+              /* Your own stream */
+              <div className="text-center text-white p-8">
+                <p className="text-2xl font-bold mb-4">You're Live! 🎥</p>
+                <Link
+                  href="/go-live"
+                  className="inline-block px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                >
+                  Manage Stream
+                </Link>
+              </div>
+            ) : (
+              /* Watch the stream */
+              <div className="w-full h-full relative">
+                <video
+                  src={stream.playback_url}
+                  className="w-full h-full object-contain"
+                  autoPlay
+                  muted
+                  playsInline
+                  controls
+                />
+                {/* Stream info overlay */}
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="bg-red-600 px-2 py-1 rounded-full text-xs font-bold">LIVE</div>
+                    <span className="text-sm">👁️ {stream.viewer_count || 0}</span>
+                  </div>
+                  <Link href={`/profile/${stream.user_id}`} className="font-bold text-lg">
+                    @{stream.user?.username}
+                  </Link>
+                  <p className="text-sm text-gray-300">{stream.title}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* Then regular posts */}
         {posts.map((post, index) => (
           <div key={post.id} data-index={index}>
             <TikTokFeedItem
@@ -176,7 +259,7 @@ export default function TikTokFeed() {
           </div>
         ))}
 
-        {posts.length === 0 && (
+        {posts.length === 0 && liveStreams.length === 0 && (
           <div className="h-screen flex items-center justify-center">
             <div className="text-center text-white">
               <svg className="w-16 h-16 mx-auto mb-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
