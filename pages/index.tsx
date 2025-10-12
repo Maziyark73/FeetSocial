@@ -58,6 +58,14 @@ export default function Home() {
     enabled: isMobile,
   });
 
+  // Redirect to TikTok feed on mobile
+  useEffect(() => {
+    if (isMobile && typeof window !== 'undefined') {
+      router.push('/feed');
+      return;
+    }
+  }, [isMobile, router]);
+
   // Load initial data
   useEffect(() => {
     loadUser();
