@@ -86,6 +86,7 @@ export default function TikTokFeed() {
 
   const loadLiveStreams = async () => {
     try {
+      console.log('📡 [Mobile Feed] Loading live streams...');
       const { data: streams, error } = await (supabase as any)
         .from('live_streams')
         .select('*')
@@ -93,6 +94,8 @@ export default function TikTokFeed() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      console.log(`📡 [Mobile Feed] Found ${streams?.length || 0} active streams:`, streams);
 
       // Manually fetch user data for each stream
       const streamsWithUsers = await Promise.all(
@@ -110,9 +113,10 @@ export default function TikTokFeed() {
         })
       );
 
+      console.log('📡 [Mobile Feed] Streams with users:', streamsWithUsers);
       setLiveStreams(streamsWithUsers);
     } catch (error) {
-      console.error('Error loading live streams:', error);
+      console.error('❌ [Mobile Feed] Error loading live streams:', error);
     }
   };
 
