@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 import WebRTCStreamer from '../components/WebRTCStreamer';
 import WHIPStreamer from '../components/WHIPStreamer';
+import LiveStreamChat from '../components/LiveStreamChat';
 import type { User } from '../types';
 
 export default function GoLive() {
@@ -310,25 +311,38 @@ export default function GoLive() {
                   )}
                 </h2>
                 
-                {streamData.streamType === 'whip' && streamData.streamCredentials.whipEndpoint ? (
-                  /* New WHIP Streamer (Browser → Mux → HLS) */
-                  <WHIPStreamer
-                    whipEndpoint={streamData.streamCredentials.whipEndpoint}
-                    streamId={streamData.id}
-                    onStreamReady={handleStartStream}
-                    onStreamEnd={() => router.push('/')}
-                    onError={(err) => setError(err)}
-                  />
-                ) : (
-                  /* Legacy WebRTC Streamer (peer-to-peer) */
-                  <WebRTCStreamer
-                    streamId={streamData.id}
-                    streamKey={streamData.streamCredentials.streamKey}
-                    onStreamStart={handleStartStream}
-                    onStreamEnd={() => router.push('/')}
-                    onError={(err) => setError(err)}
-                  />
-                )}
+                {/* Streamer Video with Comment Overlay */}
+                <div className="relative">
+                  {streamData.streamType === 'whip' && streamData.streamCredentials.whipEndpoint ? (
+                    /* New WHIP Streamer (Browser → Mux → HLS) */
+                    <WHIPStreamer
+                      whipEndpoint={streamData.streamCredentials.whipEndpoint}
+                      streamId={streamData.id}
+                      onStreamReady={handleStartStream}
+                      onStreamEnd={() => router.push('/')}
+                      onError={(err) => setError(err)}
+                    />
+                  ) : (
+                    /* Legacy WebRTC Streamer (peer-to-peer) */
+                    <WebRTCStreamer
+                      streamId={streamData.id}
+                      streamKey={streamData.streamCredentials.streamKey}
+                      onStreamStart={handleStartStream}
+                      onStreamEnd={() => router.push('/')}
+                      onError={(err) => setError(err)}
+                    />
+                  )}
+                  
+                  {/* TikTok-Style Comments Overlay (for streamer to see viewer comments) */}
+                  <div className="absolute inset-0 z-50 pointer-events-none">
+                    <LiveStreamChat 
+                      streamId={streamData.id}
+                      currentUserId={user?.id || null}
+                      isStreamer={true}
+                      compact={true}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           ) : (
