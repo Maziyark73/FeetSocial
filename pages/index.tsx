@@ -81,6 +81,9 @@ export default function Home() {
 
   const loadLiveStreams = async () => {
     try {
+      // Clean up stale streams first (older than 5 minutes without heartbeat)
+      await (supabase as any).rpc('cleanup_stale_streams');
+
       // Query live streams and manually join with users
       const { data: streams, error: streamsError } = await (supabase as any)
         .from('live_streams')

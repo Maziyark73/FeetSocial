@@ -28,7 +28,8 @@ export default function LiveStreamChat({ streamId, currentUserId, isStreamer, co
 
   useEffect(() => {
     loadMessages();
-    subscribeToMessages();
+    const cleanup = subscribeToMessages();
+    return cleanup;
   }, [streamId]);
 
   useEffect(() => {
