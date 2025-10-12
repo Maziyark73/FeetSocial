@@ -29,7 +29,16 @@ export default function LiveStreamChat({ streamId, currentUserId, isStreamer, co
   useEffect(() => {
     loadMessages();
     const cleanup = subscribeToMessages();
-    return cleanup;
+    
+    // Fallback: Poll for new messages every 3 seconds (in case Realtime fails)
+    const pollInterval = setInterval(() => {
+      loadMessages();
+    }, 3000);
+    
+    return () => {
+      cleanup();
+      clearInterval(pollInterval);
+    };
   }, [streamId]);
 
   useEffect(() => {
@@ -55,6 +64,8 @@ export default function LiveStreamChat({ streamId, currentUserId, isStreamer, co
   };
 
   const subscribeToMessages = () => {
+    console.log('📡 Subscribing to real-time messages for stream:', streamId);
+    
     // Subscribe to new messages
     const channel = supabase
       .channel(`stream-chat:${streamId}`)
@@ -67,7 +78,7 @@ export default function LiveStreamChat({ streamId, currentUserId, isStreamer, co
           filter: `stream_id=eq.${streamId}`,
         },
         async (payload: any) => {
-          console.log('💬 New message received:', payload.new);
+          console.log('💬 New message received via Realtime:', payload.new);
           
           // Fetch user details for the message
           const { data: user } = await (supabase as any)
@@ -82,6 +93,7 @@ export default function LiveStreamChat({ streamId, currentUserId, isStreamer, co
               ...user,
             };
             setMessages((prev) => [...prev, newMsg]);
+            console.log('✅ Message added to UI:', newMsg.message);
           }
         }
       )
@@ -98,9 +110,12 @@ export default function LiveStreamChat({ streamId, currentUserId, isStreamer, co
           setMessages((prev) => prev.filter((msg) => msg.id !== payload.old.id));
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Subscription status:', status);
+      });
 
     return () => {
+      console.log('🔌 Unsubscribing from stream chat');
       supabase.removeChannel(channel);
     };
   };
