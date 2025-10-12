@@ -224,13 +224,20 @@ export default function TikTokFeed() {
       >
         {/* Debug: Show stream count and details */}
         {liveStreams.length > 0 && (
-          <div className="fixed top-4 right-4 max-w-xs bg-green-600 text-white px-3 py-2 rounded-lg text-xs z-50 shadow-lg">
-            <div className="font-bold mb-1">{liveStreams.length} stream(s) loaded</div>
+          <div className="fixed top-4 right-4 max-w-sm bg-green-600 text-white px-3 py-2 rounded-lg text-xs z-50 shadow-lg overflow-auto max-h-96">
+            <div className="font-bold mb-2">{liveStreams.length} stream(s) loaded</div>
             {liveStreams.map((s, i) => (
-              <div key={i} className="text-xs mt-1 bg-black/30 p-1 rounded">
-                <div>Status: {s.status}</div>
+              <div key={i} className="text-xs mt-2 bg-black/50 p-2 rounded break-all">
+                <div className="font-bold">Stream #{i + 1}</div>
+                <div>ID: {s.id?.substring(0, 8)}...</div>
+                <div>Status: <span className="font-bold">{s.status}</span></div>
                 <div>Type: {s.stream_type}</div>
-                <div>URL: {s.playback_url ? '✅ YES' : '❌ NO'}</div>
+                <div>Mux ID: {s.mux_stream_id || 'none'}</div>
+                <div>Playback ID: {s.mux_playback_id || 'none'}</div>
+                <div className="font-bold mt-1">URL: {s.playback_url ? '✅ YES' : '❌ NO'}</div>
+                {s.playback_url && (
+                  <div className="text-[10px] mt-1 opacity-75">{s.playback_url}</div>
+                )}
               </div>
             ))}
           </div>
