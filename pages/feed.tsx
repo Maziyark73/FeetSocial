@@ -220,8 +220,8 @@ export default function TikTokFeed() {
                   Manage Stream
                 </Link>
               </div>
-            ) : stream.playback_url && stream.status === 'active' ? (
-              /* Watch the stream */
+            ) : stream.playback_url ? (
+              /* Watch the stream - show video player regardless of status */
               <div className="w-full h-full relative">
                 <video
                   src={stream.playback_url}
@@ -230,27 +230,31 @@ export default function TikTokFeed() {
                   muted
                   playsInline
                   controls
+                  poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23000' width='100' height='100'/%3E%3C/svg%3E"
                 />
                 {/* Stream info overlay */}
-                <div className="absolute bottom-4 left-4 right-4 text-white z-10">
+                <div className="absolute bottom-4 left-4 right-4 text-white z-10 bg-gradient-to-t from-black/80 to-transparent pt-8 pb-4 px-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="bg-red-600 px-2 py-1 rounded-full text-xs font-bold">LIVE</div>
+                    <div className="bg-red-600 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+                      LIVE
+                    </div>
                     <span className="text-sm">👁️ {stream.viewer_count || 0}</span>
                   </div>
-                  <Link href={`/profile/${stream.user_id}`} className="font-bold text-lg">
+                  <Link href={`/profile/${stream.user_id}`} className="font-bold text-lg block">
                     @{stream.user?.username}
                   </Link>
                   <p className="text-sm text-gray-300">{stream.title}</p>
                 </div>
               </div>
             ) : (
-              /* Stream is starting or not ready */
+              /* No playback URL yet */
               <div className="w-full h-full flex items-center justify-center bg-black">
                 <div className="text-center text-white">
                   <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                   <p className="text-xl font-bold mb-2">Stream Starting...</p>
                   <p className="text-sm text-gray-400">@{stream.user?.username}</p>
-                  <p className="text-xs text-gray-500 mt-2">This may take 30-60 seconds</p>
+                  <p className="text-xs text-gray-500 mt-2">Connecting to Mux...</p>
                 </div>
               </div>
             )}

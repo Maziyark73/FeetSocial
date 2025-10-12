@@ -609,8 +609,8 @@ export default function Home() {
                         streamId={stream.id}
                         streamerId={stream.user_id}
                       />
-                    ) : stream.playback_url && stream.status === 'active' ? (
-                      // WHIP/RTMP streams use HLS playback
+                    ) : stream.playback_url ? (
+                      // WHIP/RTMP streams use HLS playback - show player regardless of status
                       <video
                         src={stream.playback_url}
                         className="w-full h-full object-contain bg-black"
@@ -618,6 +618,7 @@ export default function Home() {
                         muted
                         playsInline
                         controls
+                        poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23000' width='100' height='100'/%3E%3C/svg%3E"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-900">
@@ -625,7 +626,7 @@ export default function Home() {
                           <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                           <p className="text-xl font-bold mb-2">Stream Starting...</p>
                           <p className="text-sm text-gray-400 mb-1">@{stream.user?.username}</p>
-                          <p className="text-xs text-gray-500">This may take 30-60 seconds for WHIP streams</p>
+                          <p className="text-xs text-gray-500">Waiting for Mux connection...</p>
                         </div>
                       </div>
                     )}
