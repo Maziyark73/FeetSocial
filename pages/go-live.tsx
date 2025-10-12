@@ -303,16 +303,16 @@ export default function GoLive() {
           ) : streamMode === 'quick' ? (
             /* Quick Stream (WHIP or WebRTC) */
             <div className="space-y-6">
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-bold text-white mb-4">
+              <div className="bg-gray-800 rounded-lg p-4 md:p-6">
+                <h2 className="text-lg md:text-xl font-bold text-white mb-4">
                   📱 Quick Stream - Browser Camera
                   {streamData.streamType === 'whip' && (
-                    <span className="ml-2 text-sm text-green-400">(HLS - Unlimited Viewers)</span>
+                    <span className="ml-2 text-xs md:text-sm text-green-400">(HLS - Unlimited Viewers)</span>
                   )}
                 </h2>
                 
-                {/* Streamer Video with Comment Overlay */}
-                <div className="relative">
+                {/* Streamer Video with Comment Overlay - Full height container */}
+                <div className="relative w-full">
                   {streamData.streamType === 'whip' && streamData.streamCredentials.whipEndpoint ? (
                     /* New WHIP Streamer (Browser → Mux → HLS) */
                     <WHIPStreamer

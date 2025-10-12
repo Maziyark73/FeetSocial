@@ -609,23 +609,23 @@ export default function Home() {
                         streamId={stream.id}
                         streamerId={stream.user_id}
                       />
-                    ) : stream.playback_url ? (
+                    ) : stream.playback_url && stream.status === 'active' ? (
                       // WHIP/RTMP streams use HLS playback
                       <video
                         src={stream.playback_url}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-contain bg-black"
                         autoPlay
                         muted
                         playsInline
                         controls
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="text-center">
-                          <svg className="w-16 h-16 text-gray-600 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
-                          </svg>
-                          <p className="text-gray-400">Stream starting...</p>
+                      <div className="w-full h-full flex items-center justify-center bg-gray-900">
+                        <div className="text-center text-white p-8">
+                          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                          <p className="text-xl font-bold mb-2">Stream Starting...</p>
+                          <p className="text-sm text-gray-400 mb-1">@{stream.user?.username}</p>
+                          <p className="text-xs text-gray-500">This may take 30-60 seconds for WHIP streams</p>
                         </div>
                       </div>
                     )}
