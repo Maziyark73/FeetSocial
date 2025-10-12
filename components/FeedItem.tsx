@@ -169,9 +169,14 @@ export default function FeedItem({
       if (!document.fullscreenElement) {
         await videoRef.current.requestFullscreen();
         setIsFullscreen(true);
-        // Lock to landscape for better viewing
-        if (screen.orientation && screen.orientation.lock) {
-          await screen.orientation.lock('landscape').catch(() => {});
+        // Lock to landscape for better viewing (if supported)
+        try {
+          const orientation = (screen as any).orientation;
+          if (orientation && orientation.lock) {
+            await orientation.lock('landscape');
+          }
+        } catch (orientationErr) {
+          // Orientation lock not supported, ignore
         }
       } else {
         await document.exitFullscreen();
