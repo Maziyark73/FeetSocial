@@ -188,6 +188,11 @@ export default function WHIPStreamer({
         console.log('✅ Set remote description');
 
         console.log('🎉 WHIP connection established!');
+        setStreaming(true);
+        setConnectionState('connected');
+        
+        // Notify parent that stream is ready
+        onStreamReady?.();
 
       } catch (err: any) {
         console.error('❌ Error starting WHIP stream:', err);
@@ -270,10 +275,10 @@ export default function WHIPStreamer({
 
   return (
     <div className="relative bg-gray-900 rounded-lg overflow-hidden">
-      {/* Video Preview - Bigger on mobile */}
+      {/* Video Preview - Full size, aspect ratio preserved */}
       <video
         ref={videoRef}
-        className="w-full h-auto max-h-[85vh] object-contain bg-black"
+        className="w-full aspect-video object-contain bg-black"
         muted
         playsInline
       />
