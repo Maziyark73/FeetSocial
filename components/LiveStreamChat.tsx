@@ -3,8 +3,9 @@ import { supabase } from '../lib/supabase';
 
 interface LiveStreamChatProps {
   streamId: string;
-  currentUserId?: string;
+  currentUserId?: string | null;
   isStreamer?: boolean;
+  compact?: boolean; // TikTok-style compact overlay mode
 }
 
 interface ChatMessage {
@@ -18,7 +19,7 @@ interface ChatMessage {
   is_creator: boolean;
 }
 
-export default function LiveStreamChat({ streamId, currentUserId, isStreamer }: LiveStreamChatProps) {
+export default function LiveStreamChat({ streamId, currentUserId, isStreamer, compact = false }: LiveStreamChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -145,6 +146,34 @@ export default function LiveStreamChat({ streamId, currentUserId, isStreamer }: 
     }
   };
 
+  // TikTok-style compact overlay mode
+  if (compact) {
+    return (
+      <div className="p-4 space-y-2">
+        {/* Show only last 3 messages */}
+        {messages.slice(-3).map((msg) => (
+          <div
+            key={msg.id}
+            className="bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 text-sm"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-semibold text-white">
+                {msg.display_name}
+              </span>
+              {msg.is_creator && (
+                <span className="text-xs bg-purple-600 text-white px-1.5 py-0.5 rounded">
+                  ⭐
+                </span>
+              )}
+            </div>
+            <p className="text-white break-words">{msg.message}</p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Full chat view (original)
   return (
     <div className="flex flex-col h-full bg-gray-800 rounded-lg overflow-hidden">
       {/* Chat Header */}

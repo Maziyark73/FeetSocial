@@ -7,6 +7,7 @@ import { createTipCheckoutSession, createVaultUnlockSession } from '../lib/strip
 import FeedItem from '../components/FeedItem';
 import WebRTCViewer from '../components/WebRTCViewer';
 import HLSViewer from '../components/HLSViewer';
+import LiveStreamChat from '../components/LiveStreamChat';
 import type { FeedItem as FeedItemType, User } from '../types';
 
 export default function Home() {
@@ -580,6 +581,17 @@ export default function Home() {
                     {/* Viewer Count */}
                     <div className="absolute top-3 right-3 bg-black/70 px-3 py-1.5 rounded-full z-10 backdrop-blur-sm">
                       <span className="text-white text-sm font-medium">👁️ {stream.viewer_count || 0}</span>
+                    </div>
+
+                    {/* TikTok-Style Chat Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
+                      <div className="pointer-events-auto">
+                        <LiveStreamChat 
+                          streamId={stream.id}
+                          currentUserId={user?.id || null}
+                          compact={true}
+                        />
+                      </div>
                     </div>
                   </div>
 
