@@ -222,10 +222,17 @@ export default function TikTokFeed() {
         ref={containerRef}
         className="h-screen overflow-y-scroll scrollbar-hide bg-black"
       >
-        {/* Debug: Show stream count */}
+        {/* Debug: Show stream count and details */}
         {liveStreams.length > 0 && (
-          <div className="fixed top-4 right-4 bg-green-600 text-white px-3 py-1 rounded-full text-xs z-50">
-            {liveStreams.length} stream(s) loaded
+          <div className="fixed top-4 right-4 max-w-xs bg-green-600 text-white px-3 py-2 rounded-lg text-xs z-50 shadow-lg">
+            <div className="font-bold mb-1">{liveStreams.length} stream(s) loaded</div>
+            {liveStreams.map((s, i) => (
+              <div key={i} className="text-xs mt-1 bg-black/30 p-1 rounded">
+                <div>Status: {s.status}</div>
+                <div>Type: {s.stream_type}</div>
+                <div>URL: {s.playback_url ? '✅ YES' : '❌ NO'}</div>
+              </div>
+            ))}
           </div>
         )}
 
