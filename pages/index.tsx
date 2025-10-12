@@ -551,8 +551,8 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Main Content */}
-        <main className="max-w-4xl mx-auto px-4 py-8">
+        {/* Main Content - Mobile optimized */}
+        <main className="max-w-4xl mx-auto px-2 md:px-4 py-4 md:py-8">
           {/* Error Message */}
           {error && (
             <div className="mb-6 bg-red-900/50 border border-red-700 rounded-lg p-4">
@@ -567,18 +567,18 @@ export default function Home() {
           )}
 
 
-        {/* Live Streams Section */}
-        {liveStreams.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <span className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></span>
-              Live Now
-            </h2>
-            <div className="space-y-6">
+          {/* Live Streams Section - Mobile optimized */}
+          {liveStreams.length > 0 && (
+            <div className="mb-6 md:mb-8">
+              <h2 className="text-lg md:text-xl font-bold text-white mb-3 md:mb-4 flex items-center gap-2 px-2 md:px-0">
+                <span className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></span>
+                Live Now
+              </h2>
+              <div className="space-y-4 md:space-y-6">
               {liveStreams.map((stream: any) => (
                 <div
                   key={stream.id}
-                  className="bg-gray-800 rounded-lg overflow-hidden"
+                  className="bg-gray-800 rounded-none md:rounded-lg overflow-hidden"
                 >
                   {/* Stream Video - Embedded inline like TikTok/Instagram */}
                   <div className="relative aspect-video bg-gray-900">
@@ -645,14 +645,14 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Stream Info */}
-                  <div className="p-4 border-b border-gray-700">
-                    <div className="flex items-center justify-between mb-3">
+                  {/* Stream Info - Mobile optimized */}
+                  <div className="p-3 md:p-4 border-b border-gray-700">
+                    <div className="flex items-center justify-between mb-2 md:mb-3">
                       <Link
                         href={`/profile/${stream.user_id}`}
-                        className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+                        className="flex items-center space-x-2 md:space-x-3 hover:opacity-80 transition-opacity"
                       >
-                        <div className="relative w-10 h-10 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                        <div className="relative w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
                           {stream.avatar_url ? (
                             <img
                               src={stream.avatar_url}
@@ -660,33 +660,33 @@ export default function Home() {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                            <div className="w-full h-full flex items-center justify-center text-white font-bold text-sm">
                               {stream.display_name?.charAt(0).toUpperCase()}
                             </div>
                           )}
                         </div>
                         <div>
-                          <p className="text-white font-semibold">{stream.display_name}</p>
+                          <p className="text-white font-semibold text-sm md:text-base">{stream.display_name}</p>
                           <p className="text-xs text-gray-400">@{stream.username}</p>
                         </div>
                       </Link>
                       
                       <Link
                         href={`/live/${stream.id}`}
-                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
+                        className="px-3 py-1.5 md:px-4 md:py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs md:text-sm font-semibold transition-colors flex items-center gap-1 md:gap-2"
                       >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
                         </svg>
-                        Chat
+                        <span className="hidden sm:inline">Chat</span>
                       </Link>
                     </div>
                     
-                    <h3 className="text-white font-bold text-lg mb-1">
+                    <h3 className="text-white font-bold text-base md:text-lg mb-1">
                       {stream.title}
                     </h3>
                     {stream.description && (
-                      <p className="text-gray-400 text-sm">{stream.description}</p>
+                      <p className="text-gray-400 text-xs md:text-sm line-clamp-2">{stream.description}</p>
                     )}
                   </div>
                 </div>
@@ -757,8 +757,8 @@ export default function Home() {
           </div>
         )}
 
-          {/* Posts Feed */}
-          <div className="space-y-6">
+          {/* Posts Feed - Mobile optimized */}
+          <div className="space-y-4 md:space-y-6">
             {posts.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
