@@ -6,7 +6,7 @@ import { supabase, getCurrentUser } from '../lib/supabase';
 import { createTipCheckoutSession, createVaultUnlockSession } from '../lib/stripe';
 import FeedItem from '../components/FeedItem';
 import WebRTCViewer from '../components/WebRTCViewer';
-import HLSViewer from '../components/HLSViewer';
+// import HLSViewer from '../components/HLSViewer'; // Temporarily disabled until WHIP streams are tested
 import LiveStreamChat from '../components/LiveStreamChat';
 import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
@@ -611,12 +611,14 @@ export default function Home() {
                         </div>
                       )
                     ) : stream.playback_url ? (
-                      // HLS Viewer for WHIP/RTMP streams (unlimited viewers, TikTok-quality)
-                      <HLSViewer
-                        playbackUrl={stream.playback_url}
-                        autoplay={true}
-                        muted={true}
-                        className="w-full h-full"
+                      // Fallback to simple video player (HLS player disabled for now)
+                      <video
+                        src={stream.playback_url}
+                        className="w-full h-full object-contain"
+                        autoPlay
+                        muted
+                        playsInline
+                        controls
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
