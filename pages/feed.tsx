@@ -21,7 +21,7 @@ export default function TikTokFeed() {
   const loadUser = async () => {
     try {
       const currentUser = await getCurrentUser();
-      setUser(currentUser);
+      setUser(currentUser as User | null);
     } catch (error) {
       console.error('Error loading user:', error);
     }
