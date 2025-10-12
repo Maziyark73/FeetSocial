@@ -210,6 +210,13 @@ export default function TikTokFeed() {
         ref={containerRef}
         className="h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide bg-black"
       >
+        {/* Debug: Show stream count */}
+        {liveStreams.length > 0 && (
+          <div className="fixed top-4 right-4 bg-green-600 text-white px-3 py-1 rounded-full text-xs z-50">
+            {liveStreams.length} stream(s) loaded
+          </div>
+        )}
+
         {/* Live Streams First */}
         {liveStreams.map((stream) => (
           <div key={`stream-${stream.id}`} className="h-screen snap-start relative flex items-center justify-center bg-black">
@@ -227,6 +234,11 @@ export default function TikTokFeed() {
             ) : stream.playback_url ? (
               /* Watch the stream - show video player regardless of status */
               <div className="w-full h-full relative">
+                {/* Debug info */}
+                <div className="absolute top-16 left-4 bg-yellow-600 text-black px-2 py-1 rounded text-xs z-50">
+                  Status: {stream.status} | URL: {stream.playback_url ? '✓' : '✗'}
+                </div>
+                
                 <video
                   src={stream.playback_url}
                   className="w-full h-full object-contain bg-black"
@@ -235,6 +247,8 @@ export default function TikTokFeed() {
                   playsInline
                   controls
                   poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23000' width='100' height='100'/%3E%3C/svg%3E"
+                  onLoadedData={() => console.log('📺 Video loaded!')}
+                  onError={(e) => console.error('❌ Video error:', e)}
                 />
                 {/* Stream info overlay */}
                 <div className="absolute bottom-4 left-4 right-4 text-white z-10 bg-gradient-to-t from-black/80 to-transparent pt-8 pb-4 px-4">
