@@ -234,47 +234,49 @@ export default function TikTokFeed() {
                 </div>
               </div>
             ) : stream.playback_url ? (
-              /* Watch the stream - simplified structure like desktop */
-              <div className="w-full aspect-video relative bg-black">
-                {/* Debug info */}
-                <div className="absolute top-16 left-4 bg-yellow-600 text-black px-2 py-1 rounded text-xs z-50 font-mono">
-                  Status: {stream.status} | Type: {stream.stream_type}
+              /* Watch the stream */
+              <>
+                {/* Debug info at top of screen */}
+                <div className="bg-yellow-600 text-black px-4 py-2 text-sm font-mono">
+                  🟢 Stream Found! Status: {stream.status} | Type: {stream.stream_type} | URL: {stream.playback_url.substring(0, 50)}...
                 </div>
                 
-                {/* Simple video element - exact same as desktop */}
-                <video
-                  key={stream.playback_url}
-                  src={stream.playback_url}
-                  className="w-full h-full object-contain bg-black"
-                  autoPlay
-                  muted
-                  playsInline
-                  controls
-                  onLoadStart={() => console.log('📺 Video load started:', stream.playback_url)}
-                  onLoadedData={() => console.log('📺 Video loaded successfully!')}
-                  onError={(e: any) => console.error('❌ Video error:', e.target.error)}
-                  onCanPlay={() => console.log('📺 Video can play!')}
-                />
-                
-                {/* Live Badge */}
-                <div className="absolute top-3 left-3 bg-red-600 px-2 py-1 rounded-full flex items-center gap-1 z-10">
-                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
-                  <span className="text-white font-bold text-xs">LIVE</span>
+                {/* Video container - EXACT copy from working desktop */}
+                <div className="relative aspect-video bg-gray-900">
+                  <video
+                    src={stream.playback_url}
+                    className="w-full h-full object-contain bg-black"
+                    autoPlay
+                    muted
+                    playsInline
+                    controls
+                    poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23000' width='100' height='100'/%3E%3C/svg%3E"
+                    onLoadStart={() => console.log('📺 [FEED] Video load started')}
+                    onLoadedData={() => console.log('📺 [FEED] Video loaded!')}
+                    onError={(e: any) => console.error('❌ [FEED] Video error:', e.target.error)}
+                    onCanPlay={() => console.log('📺 [FEED] Video can play!')}
+                  />
+                  
+                  {/* Live Badge */}
+                  <div className="absolute top-3 left-3 bg-red-600 px-3 py-1.5 rounded-full flex items-center gap-2 z-10 shadow-lg">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                    <span className="text-white font-bold text-sm">LIVE</span>
+                  </div>
+
+                  {/* Viewer Count */}
+                  <div className="absolute top-3 right-3 bg-black/70 px-3 py-1.5 rounded-full z-10 backdrop-blur-sm">
+                    <span className="text-white text-sm font-medium">👁️ {stream.viewer_count || 0}</span>
+                  </div>
                 </div>
                 
-                {/* Viewer Count */}
-                <div className="absolute top-3 right-3 bg-black/70 px-2 py-1 rounded-full z-10">
-                  <span className="text-white text-xs">👁️ {stream.viewer_count || 0}</span>
+                {/* Stream info */}
+                <div className="p-4 bg-gray-800 border-b border-gray-700">
+                  <Link href={`/profile/${stream.user_id}`} className="font-bold text-white text-lg block mb-1">
+                    @{stream.user?.username}
+                  </Link>
+                  <p className="text-sm text-gray-300">{stream.title}</p>
                 </div>
-              </div>
-              
-              {/* Stream info below video */}
-              <div className="p-4 bg-gray-800">
-                <Link href={`/profile/${stream.user_id}`} className="font-bold text-white text-lg block mb-1">
-                  @{stream.user?.username}
-                </Link>
-                <p className="text-sm text-gray-300">{stream.title}</p>
-              </div>
+              </>
             ) : (
               /* No playback URL yet */
               <div className="w-full h-full flex items-center justify-center">
