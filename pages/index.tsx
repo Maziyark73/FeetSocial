@@ -16,13 +16,6 @@ import type { FeedItem as FeedItemType, User } from '../types';
 
 export default function Home() {
   const router = useRouter();
-  
-  // Immediate mobile redirect (before rendering anything)
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      router.replace('/feed');
-    }
-  }, []);
 
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<FeedItemType[]>([]);
