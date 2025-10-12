@@ -114,6 +114,18 @@ export default function TikTokFeed() {
       );
 
       console.log('📡 [Mobile Feed] Streams with users:', streamsWithUsers);
+      
+      // Debug: Log each stream's playback_url
+      streamsWithUsers.forEach((s, i) => {
+        console.log(`📡 [Mobile Feed] Stream ${i}:`, {
+          id: s.id,
+          status: s.status,
+          stream_type: s.stream_type,
+          playback_url: s.playback_url,
+          has_url: !!s.playback_url
+        });
+      });
+      
       setLiveStreams(streamsWithUsers);
     } catch (error) {
       console.error('❌ [Mobile Feed] Error loading live streams:', error);
