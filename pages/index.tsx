@@ -15,6 +15,15 @@ import { useSwipeGesture } from '../hooks/useSwipeGesture';
 import type { FeedItem as FeedItemType, User } from '../types';
 
 export default function Home() {
+  const router = useRouter();
+  
+  // Immediate mobile redirect (before rendering anything)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      router.replace('/feed');
+    }
+  }, []);
+
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<FeedItemType[]>([]);
   const [allPosts, setAllPosts] = useState<FeedItemType[]>([]); // Store all posts for filtering
@@ -24,7 +33,6 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const router = useRouter();
   const isMobile = useIsMobile();
 
   // Pull-to-refresh for mobile
@@ -57,14 +65,6 @@ export default function Home() {
     },
     enabled: isMobile,
   });
-
-  // Redirect to TikTok feed on mobile
-  useEffect(() => {
-    if (isMobile && typeof window !== 'undefined') {
-      router.push('/feed');
-      return;
-    }
-  }, [isMobile, router]);
 
   // Load initial data
   useEffect(() => {
