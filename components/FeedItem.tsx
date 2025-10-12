@@ -34,6 +34,9 @@ export default function FeedItem({
   const [replyText, setReplyText] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = useState(true);
+  const [showLikeAnimation, setShowLikeAnimation] = useState(false);
+  const lastTapRef = useRef<number>(0);
+  const imageRef = useRef<HTMLDivElement>(null);
 
   // Load comments when expanded
   useEffect(() => {
@@ -140,10 +143,31 @@ export default function FeedItem({
     }
   };
 
+  // Double-tap to like (Instagram/TikTok style)
+  const handleDoubleTap = () => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300; // 300ms window for double-tap
+
+    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      // Double tap detected!
+      if (!post.is_liked && currentUserId) {
+        onLike(post.id);
+        setShowLikeAnimation(true);
+        setTimeout(() => setShowLikeAnimation(false), 1000);
+      }
+    }
+    
+    lastTapRef.current = now;
+  };
+
   const renderMedia = () => {
     if (post.media_type === 'image' && post.image_url) {
       return (
-        <div className="relative aspect-video w-full bg-gray-900 rounded-lg overflow-hidden">
+        <div 
+          ref={imageRef}
+          className="relative aspect-video w-full bg-gray-900 rounded-lg overflow-hidden cursor-pointer"
+          onClick={handleDoubleTap}
+        >
           <Image
             src={post.image_url}
             alt={post.title}
@@ -164,6 +188,15 @@ export default function FeedItem({
                   {formatCurrency(post.vault_price || 0)} to unlock
                 </p>
               </div>
+            </div>
+          )}
+          
+          {/* Double-Tap Heart Animation */}
+          {showLikeAnimation && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <svg className="w-32 h-32 text-white animate-ping-once" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+              </svg>
             </div>
           )}
         </div>
@@ -212,6 +245,7 @@ export default function FeedItem({
                 muted={isMuted}
                 playsInline
                 onClick={(e) => {
+                  handleDoubleTap(); // Check for double-tap to like
                   const video = e.currentTarget;
                   if (video.paused) {
                     video.play();
@@ -243,6 +277,15 @@ export default function FeedItem({
                   </svg>
                 )}
               </button>
+              
+              {/* Double-Tap Heart Animation */}
+              {showLikeAnimation && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
+                  <svg className="w-32 h-32 text-white animate-ping-once" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
             </div>
           ) : (
             <div className="aspect-video w-full bg-gray-800 flex items-center justify-center">
