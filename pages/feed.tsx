@@ -219,39 +219,47 @@ export default function TikTokFeed() {
 
         {/* Live Streams First */}
         {liveStreams.map((stream) => (
-          <div key={`stream-${stream.id}`} className="h-screen snap-start relative flex items-center justify-center bg-black">
+          <div key={`stream-${stream.id}`} className="w-full h-screen snap-start bg-black">
             {user?.id === stream.user_id ? (
               /* Your own stream */
-              <div className="text-center text-white p-8">
-                <p className="text-2xl font-bold mb-4">You're Live! 🎥</p>
-                <Link
-                  href="/go-live"
-                  className="inline-block px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
-                >
-                  Manage Stream
-                </Link>
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="text-center text-white p-8">
+                  <p className="text-2xl font-bold mb-4">You're Live! 🎥</p>
+                  <Link
+                    href="/go-live"
+                    className="inline-block px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                  >
+                    Manage Stream
+                  </Link>
+                </div>
               </div>
             ) : stream.playback_url ? (
               /* Watch the stream - show video player regardless of status */
               <div className="w-full h-full relative">
                 {/* Debug info */}
-                <div className="absolute top-16 left-4 bg-yellow-600 text-black px-2 py-1 rounded text-xs z-50">
-                  Status: {stream.status} | URL: {stream.playback_url ? '✓' : '✗'}
+                <div className="absolute top-16 left-4 bg-yellow-600 text-black px-2 py-1 rounded text-xs z-50 font-mono">
+                  Status: {stream.status} | Type: {stream.stream_type}
                 </div>
                 
+                {/* Simple video element - works on desktop, should work here too */}
                 <video
+                  key={stream.playback_url}
                   src={stream.playback_url}
-                  className="w-full h-full object-contain bg-black"
+                  className="w-full h-full object-cover bg-black"
                   autoPlay
+                  loop={false}
                   muted
                   playsInline
                   controls
-                  poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23000' width='100' height='100'/%3E%3C/svg%3E"
-                  onLoadedData={() => console.log('📺 Video loaded!')}
-                  onError={(e) => console.error('❌ Video error:', e)}
+                  webkit-playsinline="true"
+                  x5-playsinline="true"
+                  onLoadStart={() => console.log('📺 Video load started:', stream.playback_url)}
+                  onLoadedData={() => console.log('📺 Video loaded successfully!')}
+                  onError={(e: any) => console.error('❌ Video error:', e.target.error)}
+                  onCanPlay={() => console.log('📺 Video can play!')}
                 />
                 {/* Stream info overlay */}
-                <div className="absolute bottom-4 left-4 right-4 text-white z-10 bg-gradient-to-t from-black/80 to-transparent pt-8 pb-4 px-4">
+                <div className="absolute bottom-20 left-4 right-4 text-white z-10 bg-gradient-to-t from-black/90 to-transparent pt-8 pb-4 px-4 pointer-events-none">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="bg-red-600 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
                       <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
@@ -259,7 +267,7 @@ export default function TikTokFeed() {
                     </div>
                     <span className="text-sm">👁️ {stream.viewer_count || 0}</span>
                   </div>
-                  <Link href={`/profile/${stream.user_id}`} className="font-bold text-lg block">
+                  <Link href={`/profile/${stream.user_id}`} className="font-bold text-lg block pointer-events-auto">
                     @{stream.user?.username}
                   </Link>
                   <p className="text-sm text-gray-300">{stream.title}</p>
@@ -267,7 +275,7 @@ export default function TikTokFeed() {
               </div>
             ) : (
               /* No playback URL yet */
-              <div className="w-full h-full flex items-center justify-center bg-black">
+              <div className="w-full h-full flex items-center justify-center">
                 <div className="text-center text-white">
                   <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                   <p className="text-xl font-bold mb-2">Stream Starting...</p>
