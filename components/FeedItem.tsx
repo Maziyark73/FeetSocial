@@ -37,6 +37,7 @@ export default function FeedItem({
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
   const lastTapRef = useRef<number>(0);
   const imageRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Load comments when expanded
   useEffect(() => {
@@ -160,6 +161,27 @@ export default function FeedItem({
     lastTapRef.current = now;
   };
 
+  // Toggle fullscreen for video
+  const toggleFullscreen = async () => {
+    if (!videoRef.current) return;
+
+    try {
+      if (!document.fullscreenElement) {
+        await videoRef.current.requestFullscreen();
+        setIsFullscreen(true);
+        // Lock to landscape for better viewing
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock('landscape').catch(() => {});
+        }
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.error('Fullscreen error:', err);
+    }
+  };
+
   const renderMedia = () => {
     if (post.media_type === 'image' && post.image_url) {
       return (
@@ -174,6 +196,10 @@ export default function FeedItem({
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            loading="lazy"
+            quality={75}
+            placeholder="blur"
+            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
           />
           {post.is_vault && !(post as any).has_access && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -265,17 +291,28 @@ export default function FeedItem({
               {/* Mute/Unmute Button */}
               <button
                 onClick={() => setIsMuted(!isMuted)}
-                className="absolute bottom-20 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors"
+                className="absolute bottom-20 right-4 p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors md:p-2"
               >
                 {isMuted ? (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
                   </svg>
                 ) : (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                   </svg>
                 )}
+              </button>
+
+              {/* Fullscreen Button (Mobile) */}
+              <button
+                onClick={toggleFullscreen}
+                className="absolute bottom-20 right-16 p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors md:hidden"
+                title="Fullscreen"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
               </button>
               
               {/* Double-Tap Heart Animation */}

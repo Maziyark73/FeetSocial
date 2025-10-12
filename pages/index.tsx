@@ -8,6 +8,10 @@ import FeedItem from '../components/FeedItem';
 import WebRTCViewer from '../components/WebRTCViewer';
 import HLSViewer from '../components/HLSViewer';
 import LiveStreamChat from '../components/LiveStreamChat';
+import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { useSwipeGesture } from '../hooks/useSwipeGesture';
 import type { FeedItem as FeedItemType, User } from '../types';
 
 export default function Home() {
@@ -21,6 +25,38 @@ export default function Home() {
   const [error, setError] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const router = useRouter();
+  const isMobile = useIsMobile();
+
+  // Pull-to-refresh for mobile
+  const handleRefresh = async () => {
+    await Promise.all([
+      loadUser(),
+      loadPosts(0),
+      loadLiveStreams(),
+    ]);
+  };
+
+  const { isPulling, pullDistance, isRefreshing } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    enabled: isMobile,
+  });
+
+  // Swipe gestures for mobile (TikTok-style navigation)
+  useSwipeGesture({
+    onSwipeUp: () => {
+      // Load more posts when swiping up
+      if (!loadingMore && hasMore && isMobile) {
+        loadPosts(posts.length);
+      }
+    },
+    onSwipeDown: () => {
+      // Scroll to top when swiping down at bottom
+      if (isMobile) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    },
+    enabled: isMobile,
+  });
 
   // Load initial data
   useEffect(() => {
@@ -419,6 +455,15 @@ export default function Home() {
         <title>FeetSocial - Creator Platform</title>
         <meta name="description" content="Connect with creators and discover amazing content" />
       </Head>
+
+      {/* Pull-to-Refresh Indicator (Mobile Only) */}
+      {isMobile && (
+        <PullToRefreshIndicator 
+          pullDistance={pullDistance}
+          isRefreshing={isRefreshing}
+          threshold={80}
+        />
+      )}
 
       <div className="min-h-screen bg-gray-900">
         {/* Header */}
