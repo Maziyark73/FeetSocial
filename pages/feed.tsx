@@ -235,10 +235,11 @@ export default function TikTokFeed() {
               </div>
             ) : stream.playback_url ? (
               /* Watch the stream */
-              <>
+              <div className="w-full">
                 {/* Debug info at top of screen */}
-                <div className="bg-yellow-600 text-black px-4 py-2 text-sm font-mono">
-                  🟢 Stream Found! Status: {stream.status} | Type: {stream.stream_type} | URL: {stream.playback_url.substring(0, 50)}...
+                <div className="bg-yellow-600 text-black px-4 py-2 text-sm font-mono break-all">
+                  🟢 Stream: {stream.status} | {stream.stream_type}<br/>
+                  URL: {stream.playback_url}
                 </div>
                 
                 {/* Video container - EXACT copy from working desktop */}
@@ -276,7 +277,7 @@ export default function TikTokFeed() {
                   </Link>
                   <p className="text-sm text-gray-300">{stream.title}</p>
                 </div>
-              </>
+              </div>
             ) : (
               /* No playback URL yet */
               <div className="w-full h-full flex items-center justify-center">
