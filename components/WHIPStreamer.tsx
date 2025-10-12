@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { supabase } from '../lib/supabase';
 
 interface WHIPStreamerProps {
   whipEndpoint: string; // Mux WHIP endpoint
@@ -17,12 +18,55 @@ export default function WHIPStreamer({
 }: WHIPStreamerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [streaming, setStreaming] = useState(false);
   const [connectionState, setConnectionState] = useState<string>('new');
   const [error, setError] = useState<string | null>(null);
+  const [viewerCount, setViewerCount] = useState(0);
 
   useEffect(() => {
     let mounted = true;
+
+    // Start heartbeat monitoring (updates every 5 seconds)
+    const startHeartbeat = () => {
+      console.log('❤️ Starting heartbeat monitoring...');
+      
+      // Send initial heartbeat
+      sendHeartbeat();
+      
+      // Send heartbeat every 5 seconds
+      heartbeatIntervalRef.current = setInterval(() => {
+        sendHeartbeat();
+      }, 5000);
+    };
+
+    // Send heartbeat to update last_heartbeat timestamp
+    const sendHeartbeat = async () => {
+      try {
+        // Count active viewers
+        const { count } = await (supabase as any)
+          .from('stream_viewers')
+          .select('*', { count: 'exact', head: true })
+          .eq('stream_id', streamId)
+          .gte('last_seen', new Date(Date.now() - 10000).toISOString()); // Active in last 10 seconds
+
+        const viewerCount = count || 0;
+        setViewerCount(viewerCount);
+
+        // Update stream with heartbeat and viewer count
+        await (supabase as any)
+          .from('live_streams')
+          .update({
+            last_heartbeat: new Date().toISOString(),
+            viewer_count: viewerCount,
+          })
+          .eq('id', streamId);
+
+        console.log('💓 Heartbeat sent, viewers:', viewerCount);
+      } catch (error) {
+        console.error('Error sending heartbeat:', error);
+      }
+    };
 
     const startStreaming = async () => {
       try {
@@ -86,6 +130,7 @@ export default function WHIPStreamer({
           if (pc.connectionState === 'connected') {
             setStreaming(true);
             onStreamReady?.();
+            startHeartbeat(); // Start sending heartbeats to keep stream alive
           } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
             handleError('Connection to Mux failed');
           }
@@ -157,6 +202,12 @@ export default function WHIPStreamer({
     };
 
     const cleanup = () => {
+      // Stop heartbeat
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
+
       if (videoRef.current && videoRef.current.srcObject) {
         const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
         tracks.forEach(track => track.stop());
@@ -182,6 +233,12 @@ export default function WHIPStreamer({
   const handleEndStream = () => {
     console.log('🛑 Ending stream...');
     
+    // Stop heartbeat
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
       tracks.forEach(track => track.stop());
@@ -237,6 +294,13 @@ export default function WHIPStreamer({
         <div className="bg-black/60 text-white px-3 py-1 rounded-full text-sm">
           {connectionState}
         </div>
+        
+        {/* Viewer Count */}
+        {streaming && (
+          <div className="bg-black/60 text-white px-3 py-1 rounded-full text-sm">
+            👁️ {viewerCount}
+          </div>
+        )}
       </div>
 
       {/* End Stream Button */}
