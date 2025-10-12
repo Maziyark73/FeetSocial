@@ -166,43 +166,48 @@ export default function LiveStreamChat({ streamId, currentUserId, isStreamer, co
   if (compact) {
     return (
       <div className="flex flex-col h-full">
-        {/* Comments floating up (last 5 messages) */}
-        <div className="flex-1 flex flex-col justify-end p-4 space-y-2 pointer-events-none">
-          {messages.slice(-5).map((msg, index) => (
-            <div
-              key={msg.id}
-              className="bg-black/50 backdrop-blur-sm rounded-full px-4 py-2 text-sm max-w-[80%] animate-fade-in"
-              style={{
-                animation: `slideUp 0.3s ease-out ${index * 0.1}s both`
-              }}
-            >
-              <span className="font-semibold text-white">
-                {msg.display_name}
-                {msg.is_creator && ' ⭐'}
-              </span>
-              {': '}
-              <span className="text-white/90">{msg.message}</span>
-            </div>
-          ))}
+        {/* Comments floating up (last 4 messages) - much smaller and fading */}
+        <div className="flex-1 flex flex-col justify-end p-3 space-y-1.5 pointer-events-none">
+          {messages.slice(-4).map((msg, index) => {
+            const isNewest = index === messages.slice(-4).length - 1;
+            const opacity = isNewest ? 1 : 0.7 - (3 - index) * 0.15; // Fade older messages
+            
+            return (
+              <div
+                key={msg.id}
+                className="bg-black/40 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs max-w-[70%] animate-fade-in"
+                style={{
+                  animation: `slideUp 0.3s ease-out ${index * 0.05}s both`,
+                  opacity: opacity,
+                }}
+              >
+                <span className="font-semibold text-white text-xs">
+                  {msg.display_name}
+                  {msg.is_creator && ' ⭐'}
+                </span>
+                <span className="text-white/90 text-xs">: {msg.message}</span>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Comment Input at bottom */}
+        {/* Comment Input at bottom - smaller and minimal */}
         {currentUserId && (
-          <div className="p-3 bg-gradient-to-t from-black/80 to-transparent pointer-events-auto">
-            <form onSubmit={handleSendMessage} className="flex gap-2">
+          <div className="p-2 bg-gradient-to-t from-black/60 to-transparent pointer-events-auto">
+            <form onSubmit={handleSendMessage} className="flex gap-1.5">
               <input
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Add a comment..."
                 maxLength={200}
-                className="flex-1 px-4 py-2 bg-white/10 backdrop-blur-sm text-white border border-white/20 rounded-full focus:outline-none focus:ring-2 focus:ring-white/40 text-sm placeholder-white/60"
+                className="flex-1 px-3 py-1.5 bg-white/10 backdrop-blur-sm text-white border border-white/20 rounded-full focus:outline-none focus:ring-1 focus:ring-white/30 text-xs placeholder-white/50"
                 disabled={sending}
               />
               <button
                 type="submit"
                 disabled={!newMessage.trim() || sending}
-                className="px-5 py-2 bg-white/20 backdrop-blur-sm text-white rounded-full hover:bg-white/30 transition-colors disabled:opacity-30 disabled:cursor-not-allowed font-medium text-sm border border-white/20"
+                className="px-3 py-1.5 bg-white/15 backdrop-blur-sm text-white rounded-full hover:bg-white/25 transition-colors disabled:opacity-20 disabled:cursor-not-allowed text-xs border border-white/20"
               >
                 {sending ? '...' : '💬'}
               </button>
