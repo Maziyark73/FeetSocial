@@ -15,8 +15,12 @@ export default function TikTokFeed() {
 
   useEffect(() => {
     loadUser();
-    loadPosts();
   }, []);
+
+  // Load posts after user is loaded
+  useEffect(() => {
+    loadPosts();
+  }, [user]);
 
   const loadUser = async () => {
     try {
