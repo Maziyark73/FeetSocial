@@ -477,19 +477,20 @@ export default function Home() {
                 <span className="text-white font-bold text-xl">FeetSocial</span>
               </Link>
 
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 md:space-x-4">
                 {user ? (
                   <>
+                    {/* Desktop: Full buttons, Mobile: Hidden (use bottom nav) */}
                     <Link
                       href="/go-live"
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                      className="hidden md:flex px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors items-center gap-2"
                     >
                       <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
                       Go Live
                     </Link>
                     <Link
                       href="/upload"
-                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      className="hidden md:flex px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     >
                       Create Post
                     </Link>

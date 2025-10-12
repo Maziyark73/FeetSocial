@@ -166,26 +166,28 @@ export default function LiveStreamChat({ streamId, currentUserId, isStreamer, co
   if (compact) {
     return (
       <div className="flex flex-col h-full">
-        {/* Comments floating up (last 4 messages) - much smaller and fading */}
-        <div className="flex-1 flex flex-col justify-end p-3 space-y-1.5 pointer-events-none">
-          {messages.slice(-4).map((msg, index) => {
-            const isNewest = index === messages.slice(-4).length - 1;
-            const opacity = isNewest ? 1 : 0.7 - (3 - index) * 0.15; // Fade older messages
+        {/* Comments floating up (last 3 messages) - tiny and fading */}
+        <div className="flex-1 flex flex-col justify-end p-2 space-y-1 pointer-events-none">
+          {messages.slice(-3).map((msg, index) => {
+            const totalMessages = messages.slice(-3).length;
+            const isNewest = index === totalMessages - 1;
+            // Progressive fade: newest = 100%, then 50%, then 25%
+            const opacity = isNewest ? 1 : index === totalMessages - 2 ? 0.5 : 0.25;
             
             return (
               <div
                 key={msg.id}
-                className="bg-black/40 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs max-w-[70%] animate-fade-in"
+                className="bg-black/30 backdrop-blur-sm rounded-full px-2.5 py-1 max-w-[60%] animate-fade-in"
                 style={{
                   animation: `slideUp 0.3s ease-out ${index * 0.05}s both`,
                   opacity: opacity,
                 }}
               >
-                <span className="font-semibold text-white text-xs">
+                <span className="font-semibold text-white" style={{ fontSize: '10px' }}>
                   {msg.display_name}
                   {msg.is_creator && ' ⭐'}
                 </span>
-                <span className="text-white/90 text-xs">: {msg.message}</span>
+                <span className="text-white/90" style={{ fontSize: '10px' }}>: {msg.message}</span>
               </div>
             );
           })}
