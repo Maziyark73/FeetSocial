@@ -583,15 +583,13 @@ export default function Home() {
                       <span className="text-white text-sm font-medium">👁️ {stream.viewer_count || 0}</span>
                     </div>
 
-                    {/* TikTok-Style Chat Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
-                      <div className="pointer-events-auto">
-                        <LiveStreamChat 
-                          streamId={stream.id}
-                          currentUserId={user?.id || null}
-                          compact={true}
-                        />
-                      </div>
+                    {/* TikTok-Style Comments Overlay (full video height) */}
+                    <div className="absolute inset-0 z-20 pointer-events-none">
+                      <LiveStreamChat 
+                        streamId={stream.id}
+                        currentUserId={user?.id || null}
+                        compact={true}
+                      />
                     </div>
                   </div>
 

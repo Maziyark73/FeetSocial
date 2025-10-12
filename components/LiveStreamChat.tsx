@@ -149,26 +149,50 @@ export default function LiveStreamChat({ streamId, currentUserId, isStreamer, co
   // TikTok-style compact overlay mode
   if (compact) {
     return (
-      <div className="p-4 space-y-2">
-        {/* Show only last 3 messages */}
-        {messages.slice(-3).map((msg) => (
-          <div
-            key={msg.id}
-            className="bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 text-sm"
-          >
-            <div className="flex items-center gap-2 mb-1">
+      <div className="flex flex-col h-full">
+        {/* Comments floating up (last 5 messages) */}
+        <div className="flex-1 flex flex-col justify-end p-4 space-y-2 pointer-events-none">
+          {messages.slice(-5).map((msg, index) => (
+            <div
+              key={msg.id}
+              className="bg-black/50 backdrop-blur-sm rounded-full px-4 py-2 text-sm max-w-[80%] animate-fade-in"
+              style={{
+                animation: `slideUp 0.3s ease-out ${index * 0.1}s both`
+              }}
+            >
               <span className="font-semibold text-white">
                 {msg.display_name}
+                {msg.is_creator && ' ⭐'}
               </span>
-              {msg.is_creator && (
-                <span className="text-xs bg-purple-600 text-white px-1.5 py-0.5 rounded">
-                  ⭐
-                </span>
-              )}
+              {': '}
+              <span className="text-white/90">{msg.message}</span>
             </div>
-            <p className="text-white break-words">{msg.message}</p>
+          ))}
+        </div>
+
+        {/* Comment Input at bottom */}
+        {currentUserId && (
+          <div className="p-3 bg-gradient-to-t from-black/80 to-transparent pointer-events-auto">
+            <form onSubmit={handleSendMessage} className="flex gap-2">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Add a comment..."
+                maxLength={200}
+                className="flex-1 px-4 py-2 bg-white/10 backdrop-blur-sm text-white border border-white/20 rounded-full focus:outline-none focus:ring-2 focus:ring-white/40 text-sm placeholder-white/60"
+                disabled={sending}
+              />
+              <button
+                type="submit"
+                disabled={!newMessage.trim() || sending}
+                className="px-5 py-2 bg-white/20 backdrop-blur-sm text-white rounded-full hover:bg-white/30 transition-colors disabled:opacity-30 disabled:cursor-not-allowed font-medium text-sm border border-white/20"
+              >
+                {sending ? '...' : '💬'}
+              </button>
+            </form>
           </div>
-        ))}
+        )}
       </div>
     );
   }
