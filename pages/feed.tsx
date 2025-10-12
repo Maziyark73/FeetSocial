@@ -208,7 +208,7 @@ export default function TikTokFeed() {
 
       <div 
         ref={containerRef}
-        className="h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide bg-black"
+        className="h-screen overflow-y-scroll scrollbar-hide bg-black"
       >
         {/* Debug: Show stream count */}
         {liveStreams.length > 0 && (
@@ -219,7 +219,7 @@ export default function TikTokFeed() {
 
         {/* Live Streams First */}
         {liveStreams.map((stream) => (
-          <div key={`stream-${stream.id}`} className="w-full h-screen snap-start bg-black">
+          <div key={`stream-${stream.id}`} className="w-full min-h-screen bg-black">
             {user?.id === stream.user_id ? (
               /* Your own stream */
               <div className="w-full h-full flex items-center justify-center">
@@ -234,44 +234,46 @@ export default function TikTokFeed() {
                 </div>
               </div>
             ) : stream.playback_url ? (
-              /* Watch the stream - show video player regardless of status */
-              <div className="w-full h-full relative">
+              /* Watch the stream - simplified structure like desktop */
+              <div className="w-full aspect-video relative bg-black">
                 {/* Debug info */}
                 <div className="absolute top-16 left-4 bg-yellow-600 text-black px-2 py-1 rounded text-xs z-50 font-mono">
                   Status: {stream.status} | Type: {stream.stream_type}
                 </div>
                 
-                {/* Simple video element - works on desktop, should work here too */}
+                {/* Simple video element - exact same as desktop */}
                 <video
                   key={stream.playback_url}
                   src={stream.playback_url}
-                  className="w-full h-full object-cover bg-black"
+                  className="w-full h-full object-contain bg-black"
                   autoPlay
-                  loop={false}
                   muted
                   playsInline
                   controls
-                  webkit-playsinline="true"
-                  x5-playsinline="true"
                   onLoadStart={() => console.log('📺 Video load started:', stream.playback_url)}
                   onLoadedData={() => console.log('📺 Video loaded successfully!')}
                   onError={(e: any) => console.error('❌ Video error:', e.target.error)}
                   onCanPlay={() => console.log('📺 Video can play!')}
                 />
-                {/* Stream info overlay */}
-                <div className="absolute bottom-20 left-4 right-4 text-white z-10 bg-gradient-to-t from-black/90 to-transparent pt-8 pb-4 px-4 pointer-events-none">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="bg-red-600 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
-                      LIVE
-                    </div>
-                    <span className="text-sm">👁️ {stream.viewer_count || 0}</span>
-                  </div>
-                  <Link href={`/profile/${stream.user_id}`} className="font-bold text-lg block pointer-events-auto">
-                    @{stream.user?.username}
-                  </Link>
-                  <p className="text-sm text-gray-300">{stream.title}</p>
+                
+                {/* Live Badge */}
+                <div className="absolute top-3 left-3 bg-red-600 px-2 py-1 rounded-full flex items-center gap-1 z-10">
+                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+                  <span className="text-white font-bold text-xs">LIVE</span>
                 </div>
+                
+                {/* Viewer Count */}
+                <div className="absolute top-3 right-3 bg-black/70 px-2 py-1 rounded-full z-10">
+                  <span className="text-white text-xs">👁️ {stream.viewer_count || 0}</span>
+                </div>
+              </div>
+              
+              {/* Stream info below video */}
+              <div className="p-4 bg-gray-800">
+                <Link href={`/profile/${stream.user_id}`} className="font-bold text-white text-lg block mb-1">
+                  @{stream.user?.username}
+                </Link>
+                <p className="text-sm text-gray-300">{stream.title}</p>
               </div>
             ) : (
               /* No playback URL yet */
