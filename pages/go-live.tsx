@@ -22,7 +22,7 @@ export default function GoLive() {
     description: '',
     isVault: false,
     vaultPrice: '',
-    streamType: 'rtmp' as 'whip' | 'webrtc' | 'rtmp', // Default to RTMP (scalable, unlimited viewers)
+    streamType: 'whip' as 'whip' | 'webrtc' | 'rtmp', // Default to WHIP (browser → Mux → HLS, unlimited viewers)
   });
 
   useEffect(() => {
@@ -205,16 +205,16 @@ export default function GoLive() {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, streamType: 'rtmp' })}
+                      onClick={() => setFormData({ ...formData, streamType: 'whip' })}
                       className={`p-4 rounded-lg border-2 transition-all ${
-                        formData.streamType === 'rtmp'
+                        formData.streamType === 'whip'
                           ? 'border-purple-500 bg-purple-600/20'
                           : 'border-gray-600 bg-gray-700 hover:border-gray-500'
                       }`}
                     >
                       <div className="text-left">
-                        <div className="font-bold text-white mb-1">📱 Mobile Stream</div>
-                        <div className="text-xs text-gray-400">Larix/Streamlabs App</div>
+                        <div className="font-bold text-white mb-1">📱 Browser Stream</div>
+                        <div className="text-xs text-gray-400">Phone/Desktop Camera</div>
                         <div className="text-xs text-green-400 mt-1">✅ Unlimited Viewers</div>
                       </div>
                     </button>
@@ -228,8 +228,8 @@ export default function GoLive() {
                       }`}
                     >
                       <div className="text-left">
-                        <div className="font-bold text-white mb-1">🎬 Desktop Stream</div>
-                        <div className="text-xs text-gray-400">OBS Studio</div>
+                        <div className="font-bold text-white mb-1">🎬 Pro Stream</div>
+                        <div className="text-xs text-gray-400">OBS/Larix App</div>
                         <div className="text-xs text-green-400 mt-1">✅ Unlimited Viewers</div>
                       </div>
                     </button>

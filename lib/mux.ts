@@ -328,8 +328,8 @@ export const createLiveStream = async (metadata?: {
       streamKey: liveStream.stream_key,
       playbackIds: liveStream.playback_ids,
       status: liveStream.status,
-      // WHIP endpoint for WebRTC ingestion
-      whipEndpoint: `https://stream.mux.com/whip/${liveStream.id}`,
+      // WHIP endpoint for WebRTC ingestion (with stream key for auth)
+      whipEndpoint: `https://global-live.mux.com/whip/${liveStream.stream_key}`,
     };
   } catch (error) {
     console.error('Error creating live stream:', error);

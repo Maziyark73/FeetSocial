@@ -262,7 +262,7 @@ export default function TikTokFeed() {
                 </div>
               </div>
             ) : stream.stream_type === 'webrtc' ? (
-              /* WebRTC peer-to-peer stream */
+              /* WebRTC peer-to-peer stream (legacy, 1-2 viewers only) */
               <div className="w-full">
                 <div className="relative aspect-video bg-gray-900">
                   <WebRTCViewer
