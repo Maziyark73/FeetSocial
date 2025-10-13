@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabase, getCurrentUser } from '../lib/supabase';
 import TikTokFeedItem from '../components/TikTokFeedItem';
 import WebRTCViewer from '../components/WebRTCViewer';
+import LiveStreamChat from '../components/LiveStreamChat';
 import type { FeedItem as FeedItemType, User } from '../types';
 
 export default function TikTokFeed() {
@@ -279,6 +280,15 @@ export default function TikTokFeed() {
                   <div className="absolute top-3 right-3 bg-black/70 px-3 py-1.5 rounded-full z-10 backdrop-blur-sm">
                     <span className="text-white text-sm font-medium">👁️ {stream.viewer_count || 0}</span>
                   </div>
+
+                  {/* TikTok-Style Comments Overlay */}
+                  <div className="absolute inset-0 z-20 pointer-events-none">
+                    <LiveStreamChat 
+                      streamId={stream.id}
+                      currentUserId={user?.id || null}
+                      compact={true}
+                    />
+                  </div>
                 </div>
                 
                 {/* Stream info */}
@@ -290,7 +300,7 @@ export default function TikTokFeed() {
                 </div>
               </div>
             ) : stream.playback_url ? (
-              /* RTMP/WHIP stream with HLS playback */
+              /* RTMP stream with HLS playback */
               <div className="w-full">
                 <div className="relative aspect-video bg-gray-900">
                   <video
@@ -312,6 +322,15 @@ export default function TikTokFeed() {
                   {/* Viewer Count */}
                   <div className="absolute top-3 right-3 bg-black/70 px-3 py-1.5 rounded-full z-10 backdrop-blur-sm">
                     <span className="text-white text-sm font-medium">👁️ {stream.viewer_count || 0}</span>
+                  </div>
+
+                  {/* TikTok-Style Comments Overlay */}
+                  <div className="absolute inset-0 z-20 pointer-events-none">
+                    <LiveStreamChat 
+                      streamId={stream.id}
+                      currentUserId={user?.id || null}
+                      compact={true}
+                    />
                   </div>
                 </div>
                 
