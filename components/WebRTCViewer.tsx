@@ -36,30 +36,29 @@ export default function WebRTCViewer({ streamId, streamerId }: WebRTCViewerProps
 
   const initializeViewer = async () => {
     try {
-      // Create a unique key for this viewer instance
-      const instanceKey = `${streamId}-${streamerId}`;
+      const { data: { user } } = await (supabase as any).auth.getUser();
+      if (!user) {
+        setConnectionState('error');
+        return;
+      }
+
+      // Create a unique key for this viewer instance using viewer's own ID
+      const instanceKey = `${streamId}-${user.id}`;
       
-      console.log('🔍 Checking initialization for:', instanceKey, 'Already init?', initializedViewers.has(instanceKey));
+      console.log('🔍 [VIEWER] Checking initialization for:', instanceKey, 'Already init?', initializedViewers.has(instanceKey));
       
       // Skip if already initialized
       if (initializedViewers.has(instanceKey)) {
-        console.log('⚠️ Already initialized, skipping...');
+        console.log('⚠️ [VIEWER] Already initialized, skipping...');
         return;
       }
       
       // Mark as initialized immediately to prevent race conditions
       initializedViewers.set(instanceKey, true);
-      console.log('✅ Marked as initialized:', instanceKey);
-
-      const { data: { user } } = await (supabase as any).auth.getUser();
-      if (!user) {
-        setConnectionState('error');
-        initializedViewers.delete(instanceKey);
-        return;
-      }
+      console.log('✅ [VIEWER] Marked as initialized:', instanceKey);
 
       viewerIdRef.current = user.id;
-      console.log('👁️ Initializing viewer:', user.id);
+      console.log('👁️ [VIEWER] Initializing viewer:', user.id, 'for stream:', streamId);
 
       // Clean up any stale records for this viewer on this stream (from previous sessions)
       await (supabase as any)
