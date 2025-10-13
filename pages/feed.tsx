@@ -4,6 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { supabase, getCurrentUser } from '../lib/supabase';
 import TikTokFeedItem from '../components/TikTokFeedItem';
+import WebRTCViewer from '../components/WebRTCViewer';
 import type { FeedItem as FeedItemType, User } from '../types';
 
 export default function TikTokFeed() {
@@ -259,16 +260,38 @@ export default function TikTokFeed() {
                   </Link>
                 </div>
               </div>
-            ) : stream.playback_url ? (
-              /* Watch the stream */
+            ) : stream.stream_type === 'webrtc' ? (
+              /* WebRTC peer-to-peer stream */
               <div className="w-full">
-                {/* Debug info at top of screen */}
-                <div className="bg-yellow-600 text-black px-4 py-2 text-sm font-mono break-all">
-                  🟢 Stream: {stream.status} | {stream.stream_type}<br/>
-                  URL: {stream.playback_url}
+                <div className="relative aspect-video bg-gray-900">
+                  <WebRTCViewer
+                    streamId={stream.id}
+                    streamerId={stream.user_id}
+                  />
+                  
+                  {/* Live Badge */}
+                  <div className="absolute top-3 left-3 bg-red-600 px-3 py-1.5 rounded-full flex items-center gap-2 z-10 shadow-lg">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                    <span className="text-white font-bold text-sm">LIVE</span>
+                  </div>
+
+                  {/* Viewer Count */}
+                  <div className="absolute top-3 right-3 bg-black/70 px-3 py-1.5 rounded-full z-10 backdrop-blur-sm">
+                    <span className="text-white text-sm font-medium">👁️ {stream.viewer_count || 0}</span>
+                  </div>
                 </div>
                 
-                {/* Video container - EXACT copy from working desktop */}
+                {/* Stream info */}
+                <div className="p-4 bg-gray-800 border-b border-gray-700">
+                  <Link href={`/profile/${stream.user_id}`} className="font-bold text-white text-lg block mb-1">
+                    @{stream.user?.username}
+                  </Link>
+                  <p className="text-sm text-gray-300">{stream.title}</p>
+                </div>
+              </div>
+            ) : stream.playback_url ? (
+              /* RTMP/WHIP stream with HLS playback */
+              <div className="w-full">
                 <div className="relative aspect-video bg-gray-900">
                   <video
                     src={stream.playback_url}
@@ -278,10 +301,6 @@ export default function TikTokFeed() {
                     playsInline
                     controls
                     poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23000' width='100' height='100'/%3E%3C/svg%3E"
-                    onLoadStart={() => console.log('📺 [FEED] Video load started')}
-                    onLoadedData={() => console.log('📺 [FEED] Video loaded!')}
-                    onError={(e: any) => console.error('❌ [FEED] Video error:', e.target.error)}
-                    onCanPlay={() => console.log('📺 [FEED] Video can play!')}
                   />
                   
                   {/* Live Badge */}

@@ -22,7 +22,7 @@ export default function GoLive() {
     description: '',
     isVault: false,
     vaultPrice: '',
-    streamType: 'whip' as 'whip' | 'webrtc' | 'rtmp', // Default to WHIP (browser → Mux → HLS)
+    streamType: 'webrtc' as 'whip' | 'webrtc' | 'rtmp', // Default to WebRTC (peer-to-peer)
   });
 
   useEffect(() => {
@@ -205,16 +205,16 @@ export default function GoLive() {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, streamType: 'whip' })}
+                      onClick={() => setFormData({ ...formData, streamType: 'webrtc' })}
                       className={`p-4 rounded-lg border-2 transition-all ${
-                        formData.streamType === 'whip'
+                        formData.streamType === 'webrtc'
                           ? 'border-purple-500 bg-purple-600/20'
                           : 'border-gray-600 bg-gray-700 hover:border-gray-500'
                       }`}
                     >
                       <div className="text-left">
                         <div className="font-bold text-white mb-1">📱 Quick Stream</div>
-                        <div className="text-xs text-gray-400">Browser/Phone Camera (WHIP)</div>
+                        <div className="text-xs text-gray-400">Browser/Phone (Direct P2P)</div>
                       </div>
                     </button>
                     <button
