@@ -205,16 +205,16 @@ export default function GoLive() {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, streamType: 'webrtc' })}
+                      onClick={() => setFormData({ ...formData, streamType: 'whip' })}
                       className={`p-4 rounded-lg border-2 transition-all ${
-                        formData.streamType === 'webrtc'
+                        formData.streamType === 'whip'
                           ? 'border-purple-500 bg-purple-600/20'
                           : 'border-gray-600 bg-gray-700 hover:border-gray-500'
                       }`}
                     >
                       <div className="text-left">
                         <div className="font-bold text-white mb-1">📱 Quick Stream</div>
-                        <div className="text-xs text-gray-400">Browser/Phone Camera</div>
+                        <div className="text-xs text-gray-400">Browser/Phone Camera (WHIP)</div>
                       </div>
                     </button>
                     <button
