@@ -232,13 +232,14 @@ export default function TikTokFeed() {
               <div key={i} className="text-xs mt-2 bg-black/50 p-2 rounded break-all">
                 <div className="font-bold">Stream #{i + 1}</div>
                 <div>ID: {s.id?.substring(0, 8)}...</div>
+                <div>Created: {new Date(s.created_at).toLocaleTimeString()}</div>
                 <div>Status: <span className="font-bold">{s.status}</span></div>
-                <div>Type: {s.stream_type}</div>
-                <div>Mux ID: {s.mux_stream_id || 'none'}</div>
-                <div>Playback ID: {s.mux_playback_id || 'none'}</div>
+                <div>Type: <span className="font-bold">{s.stream_type}</span></div>
+                <div>Mux ID: {s.mux_stream_id ? `✅ ${s.mux_stream_id.substring(0, 8)}...` : '❌ none'}</div>
+                <div>Playback ID: {s.mux_playback_id ? `✅ ${s.mux_playback_id.substring(0, 8)}...` : '❌ none'}</div>
                 <div className="font-bold mt-1">URL: {s.playback_url ? '✅ YES' : '❌ NO'}</div>
                 {s.playback_url && (
-                  <div className="text-[10px] mt-1 opacity-75">{s.playback_url}</div>
+                  <div className="text-[10px] mt-1 opacity-75 bg-black/30 p-1 rounded">{s.playback_url.substring(0, 60)}...</div>
                 )}
               </div>
             ))}
