@@ -67,6 +67,15 @@ export default async function handler(
       streamKey = `webrtc-${user.id}-${Date.now()}`;
     }
 
+    // Log what we're about to save
+    console.log('💾 Saving stream to database:', {
+      type,
+      mux_stream_id: muxStream?.id || null,
+      mux_playback_id: playbackId,
+      playback_url: playbackUrl,
+      has_mux_stream: !!muxStream,
+    });
+
     // Create live stream record in database
     const { data: stream, error: dbError } = await (supabaseAdmin as any)
       .from('live_streams')
@@ -87,6 +96,12 @@ export default async function handler(
       .single();
 
     if (dbError) throw dbError;
+    
+    console.log('✅ Stream saved to database:', {
+      id: stream.id,
+      mux_stream_id: stream.mux_stream_id,
+      playback_url: stream.playback_url,
+    });
 
     // Return stream details
     return res.status(200).json({
