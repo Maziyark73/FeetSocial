@@ -314,22 +314,28 @@ export const createLiveStream = async (metadata?: {
       latency_mode: 'low', // Low latency for live streams
     };
 
-    // Enable WebRTC (WHIP) if requested
+    // Enable WHIP if requested
     if (metadata?.useWebRTC) {
+      config.use_whip = true; // Explicitly enable WHIP
       config.use_slate_for_standard_latency = false;
-      // WHIP is enabled by default when creating a live stream
-      // Mux will provide both RTMP and WHIP endpoints
     }
 
+    console.log('🎥 Creating Mux live stream with config:', config);
     const liveStream = await mux.Video.LiveStreams.create(config);
+    console.log('✅ Mux live stream created:', {
+      id: liveStream.id,
+      stream_key: liveStream.stream_key,
+      whip_url: liveStream.whip_url,
+      playback_ids: liveStream.playback_ids?.length || 0,
+    });
 
     return {
       id: liveStream.id,
       streamKey: liveStream.stream_key,
       playbackIds: liveStream.playback_ids,
       status: liveStream.status,
-      // WHIP endpoint for WebRTC ingestion (with stream key for auth)
-      whipEndpoint: `https://global-live.mux.com/whip/${liveStream.stream_key}`,
+      // Use the actual whip_url returned by Mux, not a constructed URL
+      whipEndpoint: liveStream.whip_url || null,
     };
   } catch (error) {
     console.error('Error creating live stream:', error);

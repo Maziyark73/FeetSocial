@@ -61,7 +61,16 @@ export default async function handler(
       playbackId = muxStream.playbackIds?.[0]?.id || null;
       playbackUrl = playbackId ? getLiveStreamPlaybackUrl(playbackId) : null;
       streamKey = muxStream.streamKey;
-      whipEndpoint = muxStream.whipEndpoint;
+      whipEndpoint = muxStream.whipEndpoint; // This is now the actual whip_url from Mux
+      
+      console.log('📡 Stream details:', {
+        muxId: muxStream.id,
+        streamKey,
+        playbackId,
+        playbackUrl,
+        whipEndpoint,
+        hasWhipUrl: !!whipEndpoint,
+      });
     } else if (type === 'webrtc') {
       // Legacy WebRTC (peer-to-peer) - still supported but not recommended for scale
       streamKey = `webrtc-${user.id}-${Date.now()}`;
