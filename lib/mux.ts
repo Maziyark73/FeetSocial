@@ -322,12 +322,31 @@ export const createLiveStream = async (metadata?: {
 
     console.log('🎥 Creating Mux live stream with config:', config);
     const liveStream = await mux.Video.LiveStreams.create(config);
-    console.log('✅ Mux live stream created:', {
-      id: liveStream.id,
-      stream_key: liveStream.stream_key,
-      whip_url: liveStream.whip_url,
-      playback_ids: liveStream.playback_ids?.length || 0,
+    
+    // Log the full response to debug WHIP URL availability
+    console.log('✅ Mux live stream created - full response:', liveStream);
+    console.log('🔍 WHIP URL properties:', {
+      'liveStream.whip_url': liveStream.whip_url,
+      'liveStream.whip': liveStream.whip,
+      'liveStream.whip_endpoint': liveStream.whip_endpoint,
+      'liveStream.ingest': liveStream.ingest,
     });
+
+    // Try multiple possible property names for WHIP URL
+    let whipUrl = liveStream.whip_url || 
+                  liveStream.whip?.url || 
+                  liveStream.whip_endpoint || 
+                  liveStream.ingest?.whip_url ||
+                  null;
+
+    // If no WHIP URL is provided but WHIP was requested, construct the standard endpoint
+    if (!whipUrl && metadata?.useWebRTC && liveStream.stream_key) {
+      // Fallback: Use the standard Mux WHIP endpoint format
+      whipUrl = `https://global-live.mux.com/whip/${liveStream.stream_key}`;
+      console.log('⚠️ No WHIP URL from Mux, using fallback format:', whipUrl);
+    }
+
+    console.log('🎯 Final WHIP URL:', whipUrl);
 
     return {
       id: liveStream.id,
@@ -335,7 +354,7 @@ export const createLiveStream = async (metadata?: {
       playbackIds: liveStream.playback_ids,
       status: liveStream.status,
       // Use the actual whip_url returned by Mux, not a constructed URL
-      whipEndpoint: liveStream.whip_url || null,
+      whipEndpoint: whipUrl,
     };
   } catch (error) {
     console.error('Error creating live stream:', error);
