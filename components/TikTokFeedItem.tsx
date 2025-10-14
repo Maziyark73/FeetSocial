@@ -76,12 +76,12 @@ export default function TikTokFeedItem({ post, currentUserId, onLike, isActive }
 
   return (
     <div className="relative w-full h-screen bg-black snap-start snap-always">
-      {/* Video */}
+      {/* Video/Image */}
       {post.media_type === 'video' && videoUrl ? (
         <video
           ref={videoRef}
           src={videoUrl}
-          className="absolute inset-0 w-full h-full object-contain"
+          className="absolute inset-0 w-full h-full object-cover"
           loop
           muted={isMuted}
           playsInline
@@ -91,7 +91,7 @@ export default function TikTokFeedItem({ post, currentUserId, onLike, isActive }
         <img
           src={post.image_url}
           alt={post.title}
-          className="absolute inset-0 w-full h-full object-contain"
+          className="absolute inset-0 w-full h-full object-cover"
           onClick={handleDoubleTap}
         />
       ) : null}
@@ -105,8 +105,8 @@ export default function TikTokFeedItem({ post, currentUserId, onLike, isActive }
         </div>
       )}
 
-      {/* Right Side Action Buttons (TikTok Style) */}
-      <div className="absolute right-2 bottom-24 flex flex-col items-center gap-6 z-30">
+      {/* Right Side Action Buttons */}
+      <div className="absolute right-4 bottom-24 flex flex-col items-center gap-6 z-30">
         {/* Creator Avatar */}
         <Link href={`/profile/${post.user.id}`} className="relative">
           <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white">
@@ -177,7 +177,7 @@ export default function TikTokFeedItem({ post, currentUserId, onLike, isActive }
         </button>
       </div>
 
-      {/* Bottom Info (TikTok Style) */}
+      {/* Bottom Info Overlay */}
       <div className="absolute left-0 right-0 bottom-20 p-4 z-20 bg-gradient-to-t from-black/60 to-transparent">
         <Link href={`/profile/${post.user.id}`}>
           <p className="text-white font-semibold text-sm drop-shadow-lg mb-1">
@@ -198,7 +198,7 @@ export default function TikTokFeedItem({ post, currentUserId, onLike, isActive }
         )}
       </div>
 
-      {/* Comment Input (slides up from bottom) */}
+      {/* Comment Input */}
       {showCommentInput && currentUserId && (
         <div className="absolute bottom-16 left-0 right-0 p-4 bg-black/80 backdrop-blur-md z-40">
           <form onSubmit={handleComment} className="flex gap-2">

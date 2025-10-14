@@ -21,13 +21,11 @@ export default function TikTokFeed() {
     loadUser();
   }, []);
 
-  // Load posts after user is loaded
   useEffect(() => {
     loadPosts();
     loadLiveStreams();
   }, [user]);
 
-  // Poll for live streams
   useEffect(() => {
     const interval = setInterval(loadLiveStreams, 15000);
     return () => clearInterval(interval);
@@ -52,7 +50,6 @@ export default function TikTokFeed() {
 
       if (error) throw error;
 
-      // Transform flat SQL result into nested FeedItem structure
       const transformed: FeedItemType[] = (data || []).map((row: any) => ({
         id: row.post_id,
         user_id: row.user_id,
@@ -88,7 +85,6 @@ export default function TikTokFeed() {
 
   const loadLiveStreams = async () => {
     try {
-      console.log('📡 [Mobile Feed] Loading live streams...');
       const { data: streams, error } = await (supabase as any)
         .from('live_streams')
         .select('*')
@@ -97,9 +93,6 @@ export default function TikTokFeed() {
 
       if (error) throw error;
 
-      console.log(`📡 [Mobile Feed] Found ${streams?.length || 0} active streams:`, streams);
-
-      // Manually fetch user data for each stream
       const streamsWithUsers = await Promise.all(
         (streams || []).map(async (stream: any) => {
           const { data: userData } = await (supabase as any)
@@ -115,22 +108,9 @@ export default function TikTokFeed() {
         })
       );
 
-      console.log('📡 [Mobile Feed] Streams with users:', streamsWithUsers);
-      
-      // Debug: Log each stream's playback_url
-      streamsWithUsers.forEach((s, i) => {
-        console.log(`📡 [Mobile Feed] Stream ${i}:`, {
-          id: s.id,
-          status: s.status,
-          stream_type: s.stream_type,
-          playback_url: s.playback_url,
-          has_url: !!s.playback_url
-        });
-      });
-      
       setLiveStreams(streamsWithUsers);
     } catch (error) {
-      console.error('❌ [Mobile Feed] Error loading live streams:', error);
+      console.error('Error loading live streams:', error);
     }
   };
 
@@ -138,7 +118,6 @@ export default function TikTokFeed() {
     if (!user) return;
 
     try {
-      // Check if already liked
       const { data: existingLike } = await (supabase as any)
         .from('likes')
         .select('id')
@@ -147,14 +126,12 @@ export default function TikTokFeed() {
         .maybeSingle();
 
       if (existingLike) {
-        // Unlike
         await (supabase as any)
           .from('likes')
           .delete()
           .eq('post_id', postId)
           .eq('user_id', user.id);
       } else {
-        // Like
         await (supabase as any)
           .from('likes')
           .insert({
@@ -163,7 +140,6 @@ export default function TikTokFeed() {
           });
       }
 
-      // Update local state
       setPosts(posts.map(p => 
         p.id === postId 
           ? { 
@@ -178,7 +154,6 @@ export default function TikTokFeed() {
     }
   };
 
-  // Detect which video is in view
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -222,35 +197,13 @@ export default function TikTokFeed() {
 
       <div 
         ref={containerRef}
-        className="h-screen overflow-y-scroll scrollbar-hide bg-black"
+        className="h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide bg-black"
       >
-        {/* Debug: Show stream count and details */}
-        {liveStreams.length > 0 && (
-          <div className="fixed top-4 right-4 max-w-sm bg-green-600 text-white px-3 py-2 rounded-lg text-xs z-50 shadow-lg overflow-auto max-h-96">
-            <div className="font-bold mb-2">{liveStreams.length} stream(s) loaded</div>
-            {liveStreams.map((s, i) => (
-              <div key={i} className="text-xs mt-2 bg-black/50 p-2 rounded break-all">
-                <div className="font-bold">Stream #{i + 1}</div>
-                <div>ID: {s.id?.substring(0, 8)}...</div>
-                <div>Created: {new Date(s.created_at).toLocaleTimeString()}</div>
-                <div>Status: <span className="font-bold">{s.status}</span></div>
-                <div>Type: <span className="font-bold">{s.stream_type}</span></div>
-                <div>Mux ID: {s.mux_stream_id ? `✅ ${s.mux_stream_id.substring(0, 8)}...` : '❌ none'}</div>
-                <div>Playback ID: {s.mux_playback_id ? `✅ ${s.mux_playback_id.substring(0, 8)}...` : '❌ none'}</div>
-                <div className="font-bold mt-1">URL: {s.playback_url ? '✅ YES' : '❌ NO'}</div>
-                {s.playback_url && (
-                  <div className="text-[10px] mt-1 opacity-75 bg-black/30 p-1 rounded">{s.playback_url.substring(0, 60)}...</div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Live Streams First */}
         {liveStreams.map((stream) => (
-          <div key={`stream-${stream.id}`} className="w-full min-h-screen bg-black">
+          <div key={`stream-${stream.id}`} className="w-full h-screen snap-start snap-always bg-black relative">
             {user?.id === stream.user_id ? (
-              /* Your own stream */
               <div className="w-full h-full flex items-center justify-center">
                 <div className="text-center text-white p-8">
                   <p className="text-2xl font-bold mb-4">You're Live! 🎥</p>
@@ -263,88 +216,81 @@ export default function TikTokFeed() {
                 </div>
               </div>
             ) : stream.stream_type === 'webrtc' ? (
-              /* WebRTC peer-to-peer stream (legacy, 1-2 viewers only) */
-              <div className="w-full">
-                <div className="relative aspect-video bg-gray-900">
-                  <WebRTCViewer
-                    streamId={stream.id}
-                    streamerId={stream.user_id}
-                  />
-                  
-                  {/* Live Badge */}
-                  <div className="absolute top-3 left-3 bg-red-600 px-3 py-1.5 rounded-full flex items-center gap-2 z-10 shadow-lg">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                    <span className="text-white font-bold text-sm">LIVE</span>
-                  </div>
-
-                  {/* Viewer Count */}
-                  <div className="absolute top-3 right-3 bg-black/70 px-3 py-1.5 rounded-full z-10 backdrop-blur-sm">
-                    <span className="text-white text-sm font-medium">👁️ {stream.viewer_count || 0}</span>
-                  </div>
-
-                  {/* TikTok-Style Comments Overlay */}
-                  <div className="absolute inset-0 z-20 pointer-events-none">
-                    <LiveStreamChat 
-                      streamId={stream.id}
-                      currentUserId={user?.id || null}
-                      compact={true}
-                    />
-                  </div>
-                </div>
+              <div className="absolute inset-0 w-full h-full">
+                <WebRTCViewer
+                  streamId={stream.id}
+                  streamerId={stream.user_id}
+                />
                 
-                {/* Stream info */}
-                <div className="p-4 bg-gray-800 border-b border-gray-700">
+                {/* Live Badge */}
+                <div className="absolute top-4 left-4 bg-red-600 px-3 py-1.5 rounded-full flex items-center gap-2 z-10 shadow-lg">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  <span className="text-white font-bold text-sm">LIVE</span>
+                </div>
+
+                {/* Viewer Count */}
+                <div className="absolute top-4 right-4 bg-black/70 px-3 py-1.5 rounded-full z-10 backdrop-blur-sm">
+                  <span className="text-white text-sm font-medium">👁️ {stream.viewer_count || 0}</span>
+                </div>
+
+                {/* Stream Info - Bottom Left */}
+                <div className="absolute bottom-4 left-4 z-20">
                   <Link href={`/profile/${stream.user_id}`} className="font-bold text-white text-lg block mb-1">
                     @{stream.user?.username}
                   </Link>
-                  <p className="text-sm text-gray-300">{stream.title}</p>
+                  <p className="text-sm text-gray-200">{stream.title}</p>
+                </div>
+
+                {/* TikTok-Style Comments Overlay */}
+                <div className="absolute inset-0 z-30 pointer-events-none">
+                  <LiveStreamChat 
+                    streamId={stream.id}
+                    currentUserId={user?.id || null}
+                    compact={true}
+                  />
                 </div>
               </div>
             ) : stream.playback_url ? (
-              /* RTMP stream with HLS playback */
-              <div className="w-full">
-                <div className="relative aspect-video bg-gray-900">
-                  <video
-                    src={stream.playback_url}
-                    className="w-full h-full object-contain bg-black"
-                    autoPlay
-                    muted
-                    playsInline
-                    controls
-                    poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23000' width='100' height='100'/%3E%3C/svg%3E"
-                  />
-                  
-                  {/* Live Badge */}
-                  <div className="absolute top-3 left-3 bg-red-600 px-3 py-1.5 rounded-full flex items-center gap-2 z-10 shadow-lg">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                    <span className="text-white font-bold text-sm">LIVE</span>
-                  </div>
-
-                  {/* Viewer Count */}
-                  <div className="absolute top-3 right-3 bg-black/70 px-3 py-1.5 rounded-full z-10 backdrop-blur-sm">
-                    <span className="text-white text-sm font-medium">👁️ {stream.viewer_count || 0}</span>
-                  </div>
-
-                  {/* TikTok-Style Comments Overlay */}
-                  <div className="absolute inset-0 z-20 pointer-events-none">
-                    <LiveStreamChat 
-                      streamId={stream.id}
-                      currentUserId={user?.id || null}
-                      compact={true}
-                    />
-                  </div>
-                </div>
+              <div className="absolute inset-0 w-full h-full">
+                <video
+                  src={stream.playback_url}
+                  className="absolute inset-0 w-full h-full object-cover bg-black"
+                  autoPlay
+                  muted
+                  playsInline
+                  controls
+                  poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23000' width='100' height='100'/%3E%3C/svg%3E"
+                />
                 
-                {/* Stream info */}
-                <div className="p-4 bg-gray-800 border-b border-gray-700">
+                {/* Live Badge */}
+                <div className="absolute top-4 left-4 bg-red-600 px-3 py-1.5 rounded-full flex items-center gap-2 z-10 shadow-lg">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  <span className="text-white font-bold text-sm">LIVE</span>
+                </div>
+
+                {/* Viewer Count */}
+                <div className="absolute top-4 right-4 bg-black/70 px-3 py-1.5 rounded-full z-10 backdrop-blur-sm">
+                  <span className="text-white text-sm font-medium">👁️ {stream.viewer_count || 0}</span>
+                </div>
+
+                {/* Stream Info - Bottom Left */}
+                <div className="absolute bottom-4 left-4 z-20">
                   <Link href={`/profile/${stream.user_id}`} className="font-bold text-white text-lg block mb-1">
                     @{stream.user?.username}
                   </Link>
-                  <p className="text-sm text-gray-300">{stream.title}</p>
+                  <p className="text-sm text-gray-200">{stream.title}</p>
+                </div>
+
+                {/* TikTok-Style Comments Overlay */}
+                <div className="absolute inset-0 z-30 pointer-events-none">
+                  <LiveStreamChat 
+                    streamId={stream.id}
+                    currentUserId={user?.id || null}
+                    compact={true}
+                  />
                 </div>
               </div>
             ) : (
-              /* No playback URL yet */
               <div className="w-full h-full flex items-center justify-center">
                 <div className="text-center text-white">
                   <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -357,7 +303,7 @@ export default function TikTokFeed() {
           </div>
         ))}
 
-        {/* Then regular posts */}
+        {/* Regular Posts */}
         {posts.map((post, index) => (
           <div key={post.id} data-index={index}>
             <TikTokFeedItem
