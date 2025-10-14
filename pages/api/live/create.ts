@@ -61,7 +61,8 @@ export default async function handler(
       playbackId = muxStream.playbackIds?.[0]?.id || null;
       playbackUrl = playbackId ? getLiveStreamPlaybackUrl(playbackId) : null;
       streamKey = muxStream.streamKey;
-      whipEndpoint = muxStream.whipEndpoint; // This is now the actual whip_url from Mux
+      // ✅ Use the actual signed WHIP URL from Mux
+      whipEndpoint = muxStream.whipEndpoint;
       
       console.log('📡 Stream details from Mux:', {
         muxId: muxStream.id,
@@ -70,7 +71,6 @@ export default async function handler(
         playbackUrl,
         whipEndpoint,
         hasWhipUrl: !!whipEndpoint,
-        whipEndpointType: typeof whipEndpoint,
       });
 
       // Verify WHIP endpoint is properly formatted
