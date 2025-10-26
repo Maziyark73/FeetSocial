@@ -327,12 +327,12 @@ export const createLiveStream = async (
     if (metadata?.description) config.description = metadata.description;
 
     console.log('🎥 Creating Mux live stream with config:', config);
-    const liveStream = await mux.Video.LiveStreams.create(config);
+    const liveStream: any = await mux.Video.LiveStreams.create(config);
     
     console.log('✅ Mux live stream created:', {
       id: liveStream.id,
       stream_key: liveStream.stream_key,
-      whip_url: liveStream.whip_url,
+    
       playback_ids: liveStream.playback_ids?.length || 0,
     });
 
@@ -342,7 +342,7 @@ export const createLiveStream = async (
       playbackIds: liveStream.playback_ids,
       status: liveStream.status,
       // ✅ Use the actual WHIP URL from Mux (signed URL)
-      whipEndpoint: liveStream.whip_url,
+  
     };
   } catch (error) {
     console.error('Error creating live stream:', error);
