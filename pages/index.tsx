@@ -12,7 +12,8 @@ import LiveStreamChat from '../components/LiveStreamChat';
 import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { useIsMobile } from '../hooks/useIsMobile';
-import { useSwipeGesture } from '../hooks/useSwipeGesture';
+import { useSwipeGesture } from '../hooks/useSwipeGesture';import TikTokEmbed from '../components/TikTokEmbed';
+
 import type { FeedItem as FeedItemType, User } from '../types';
 
 export default function Home() {
