@@ -72,6 +72,7 @@ CREATE TABLE comments (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
+    parent_id UUID REFERENCES comments(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -97,6 +98,8 @@ CREATE INDEX idx_follows_following ON follows(following_id);
 CREATE INDEX idx_likes_post ON likes(post_id);
 CREATE INDEX idx_likes_user ON likes(user_id);
 CREATE INDEX idx_comments_post ON comments(post_id);
+CREATE INDEX idx_comments_parent_id ON comments(parent_id);
+CREATE INDEX idx_comments_post_parent ON comments(post_id, parent_id);
 CREATE INDEX idx_vault_access_user ON vault_access(user_id);
 CREATE INDEX idx_vault_access_post ON vault_access(post_id);
 

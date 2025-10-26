@@ -167,6 +167,7 @@ export interface Database {
           user_id: string;
           post_id: string;
           content: string;
+          parent_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -175,6 +176,7 @@ export interface Database {
           user_id: string;
           post_id: string;
           content: string;
+          parent_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -183,6 +185,7 @@ export interface Database {
           user_id?: string;
           post_id?: string;
           content?: string;
+          parent_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };

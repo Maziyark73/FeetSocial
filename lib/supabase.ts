@@ -306,6 +306,7 @@ export const createComment = async (commentData: {
   user_id: string;
   post_id: string;
   content: string;
+  parent_id?: string | null;
 }) => {
   const { data, error } = await (supabase as any)
     .from('comments')
