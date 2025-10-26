@@ -299,20 +299,22 @@ export const getVideoAspectRatio = async (assetId: string) => {
 // ============================================
 
 // Create a new live stream (supports both RTMP and WebRTC/WHIP)
-export const createLiveStream = async (metadata?: {
-  title?: string;
-  description?: string;
-  useWebRTC?: boolean; // Set to true for browser-based streaming via WHIP
-}) => {
+export const createLiveStream = async (
+  metadata?: {
+    title?: string;
+    description?: string;
+    useWebRTC?: boolean; // Set to true for browser-based streaming via WHIP
+  }
+) => {
   try {
     const config: any = {
       playback_policy: ['public'],
-      new_asset_settings: {
-        playback_policy: ['public'],
-      },
-      reconnect_window: 60, // Allow reconnection within 60 seconds
-      latency_mode: 'low', // Low latency for live streams
+      new_asset_settings: { playback_policy: ['public'] },
+      reconnect_window: 60,
+      latency_mode: 'low',
     };
+    …
+
 
     // Enable WHIP if requested
     if (metadata?.useWebRTC) {
