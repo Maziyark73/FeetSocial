@@ -12,8 +12,8 @@ import LiveStreamChat from '../components/LiveStreamChat';
 import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { useIsMobile } from '../hooks/useIsMobile';
-import { useSwipeGesture } from '../hooks/useSwipeGesture';import TikTokEmbed from '../components/TikTokEmbed';
-
+import { useSwipeGesture } from '../hooks/useSwipeGesture';
+import TikTokEmbed from '../components/TikTokEmbed';
 import type { FeedItem as FeedItemType, User } from '../types';
 
 export default function Home() {
@@ -465,11 +465,12 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>FeetSocial - Creator Platform</title>
+     
         <meta name="description" content="Connect with creators and discover amazing content" />
       </Head>
 
-      {/* Pull-to-Refresh Indicator (Mobile Only) */}
+      <TikTokEmbed />
+ {/* Pull-to-Refresh Indicator (Mobile Only) */}
       {isMobile && (
         <PullToRefreshIndicator 
           pullDistance={pullDistance}
