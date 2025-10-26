@@ -1,7 +1,7 @@
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
-import type { GetServerSideProps } from 'next';
+//import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
+//import type { GetServerSideProps } from 'next';
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
+/*exprt const getServerSideProps: GetServerSideProps = async (ctx) => {
   const supabase = createServerSupabaseClient(ctx);
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
@@ -12,8 +12,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       },
     };
   }
-  return { props: {} };
-};
+//  re*/*/turn { props: {} };
+
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
@@ -32,6 +32,16 @@ import type { FeedItem as FeedItemType, User } from '../types';
 
 export default function Home() {
   const router = useRouter();
+   useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.replace('/login');
+      }
+    };
+    checkSession();
+  }, []);
+
 
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<FeedItemType[]>([]);
