@@ -1,18 +1,3 @@
-//import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
-//import type { GetServerSideProps } from 'next';
-
-/*exprt const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const supabase = createServerSupabaseClient(ctx);
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
-  }
-//  re*/*/turn { props: {} };
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
